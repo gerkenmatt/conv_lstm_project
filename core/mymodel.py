@@ -134,7 +134,6 @@ class MyModel():
 		timer = Timer()
 		timer.start()
 		print('[Model] Evaluation Started')
-		print('[Model] %s epochs, %s batch size' % (epochs, batch_size))
 		
 		perf = []
 		if modelType == ModelType.FUNCTIONAL: 
@@ -143,7 +142,7 @@ class MyModel():
 		elif modelType == ModelType.SEQUENTIAL: 
 			perf = self.seq_model.evaluate(x, y)
 
-		print('[Model] Evaluation Completed. Model saved as %s' % save_fname)
+		print('[Model] Evaluation Completed')
 		timer.stop()
 		return perf
 
@@ -151,10 +150,7 @@ class MyModel():
 		timer = Timer()
 		timer.start()
 		print('[Model] Evaluation Started')
-		print('[Model] %s epochs, %s batch size, %s batches per epoch' % (epochs, batch_size, steps_per_epoch))
 		
-		save_fname = os.path.join(save_dir, '%s-e%s.h5' % (dt.datetime.now().strftime('%d%m%Y-%H%M%S'), str(epochs)))
-
 		perf = []
 		if modelType == ModelType.FUNCTIONAL: 
 			print("     EVALUATE FUNCTIONAL PERFORMANCE")
@@ -171,7 +167,7 @@ class MyModel():
 						workers=1,
 						steps=50
 					)
-		print('[Model] Evaluation Completed. Model saved as %s' % save_fname)
+		print('[Model] Evaluation Completed. ')
 		timer.stop()
 		return perf
 

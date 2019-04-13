@@ -7,7 +7,7 @@ from core.data_processor import DataLoader
 from core.mymodel import MyModel
 from core.mymodel import ModelType
 
-compareModels = False
+compareModels = True
 visualizeConvolution = False
 plotPredictions = False
 
@@ -120,7 +120,7 @@ def main():
         save_dir=configs['model']['save_dir'],
         modelType=ModelType.FUNCTIONAL
     )
-    func_test_perf = model.model.eval(
+    func_test_perf = model.eval(
         x=x_test,
         y=y_test, 
         batch_size=configs['training']['batch_size'], 
@@ -128,6 +128,7 @@ def main():
     )
 
     print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
+    print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
     if compareModels:
         print("Evaluate Sequential Model Performance")
         seq_train_perf = model.eval_generator(
@@ -140,7 +141,17 @@ def main():
             save_dir=configs['model']['save_dir'],
             modelType=ModelType.SEQUENTIAL
         )    
+        seq_test_perf = model.eval(
+            x=x_test,
+            y=y_test, 
+            batch_size=configs['training']['batch_size'], 
+            modelType=ModelType.SEQUENTIAL
+        )
         print("SEQUENTIAL MODEL TRAIN PERF: ", str(seq_train_perf))
+        print("SEQUENTIAL MODEL TEST PERF: ", str(seq_test_perf))
+
+    print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
+    print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
 
     # Plot predictions on each of the models
     if plotPredictions:
