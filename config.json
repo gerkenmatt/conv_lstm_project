@@ -19,17 +19,10 @@
 		"save_dir": "saved_models",
 		"layers": [
 			{
-				"type": "conv1d",
-				"input_dim": 2, 
-				"filters": 16,
-				"kernel_size": 5,
-				"padding": "same"
-			},
-			{
 				"type": "lstm",
 				"neurons": 100,
 				"input_timesteps": 49,
-				"input_dim": 16,
+				"input_dim": 2,
 				"return_seq": true
 			},
 			{

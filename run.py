@@ -12,6 +12,9 @@ from core.data_processor import DataLoader
 from core.mymodel import MyModel
 from core.mymodel import ModelType
 
+compareModels = True
+visualizeConvolution = False
+plotPredictions = False
 
 def plot_results(predicted_data, true_data):
     fig = plt.figure(facecolor='white')
@@ -41,7 +44,6 @@ def main():
     configs = json.load(open('config.json', 'r'))
     if not os.path.exists(configs['model']['save_dir']): os.makedirs(configs['model']['save_dir'])
 
-    compareModels = True
     data = DataLoader(
         os.path.join('data', configs['data']['filename']),
         configs['data']['train_test_split'],
@@ -106,21 +108,50 @@ def main():
     
 
     # Visualize convolutional layer operations on raw training data 
-    print("*****x shape: ", str(x.shape))
-    conv_predictions = model.conv_layer_analysis(x, configs['data']['sequence_length'], configs['data']['sequence_length'])
-
-
-    # Run predictions on Functional model (with conv layers)
-    func_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.FUNCTIONAL)
-    plot_results_multiple(func_predictions, y, configs['data']['sequence_length'], True)
-
-
-    # Run predictions on Sequential model
-    seq_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.SEQUENTIAL)
-    plot_results_multiple(seq_predictions, y, configs['data']['sequence_length'], True)
-
+    if visualizeConvolution: 
+        print("*****x shape: ", str(x.shape))
+        conv_predictions = model.conv_layer_analysis(x, configs['data']['sequence_length'], configs['data']['sequence_length'])
 
     # Compare performance
+    if compareModels:
+        print("comparing models")
+        func_performance = model.train_generator(
+            data_gen=data.generate_train_batch(
+                seq_len=configs['data']['sequence_length'],
+                batch_size=configs['training']['batch_size'],
+                normalise=configs['data']['normalise']
+            ),
+            epochs=configs['training']['epochs'],
+            batch_size=configs['training']['batch_size'],
+            steps_per_epoch=steps_per_epoch,
+            save_dir=configs['model']['save_dir'],
+            modelType=ModelType.FUNCTIONAL
+        )
+        if compareModels:
+            seq_performance = model.train_generator(
+                data_gen=data.generate_train_batch(
+                    seq_len=configs['data']['sequence_length'],
+                    batch_size=configs['training']['batch_size'],
+                    normalise=configs['data']['normalise']
+                ),
+                epochs=configs['training']['epochs'],
+                batch_size=configs['training']['batch_size'],
+                steps_per_epoch=steps_per_epoch,
+                save_dir=configs['model']['save_dir'],
+                modelType=ModelType.SEQUENTIAL
+            )    
+
+    if plotPredictions:
+        # Run predictions on Functional model (with conv layers)
+        func_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.FUNCTIONAL)
+        plot_results_multiple(func_predictions, y, configs['data']['sequence_length'], True)
+
+
+        # Run predictions on Sequential model
+        if compareModels:
+            seq_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.SEQUENTIAL)
+            plot_results_multiple(seq_predictions, y, configs['data']['sequence_length'], True)
+
 
 
 

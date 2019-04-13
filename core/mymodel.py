@@ -130,7 +130,35 @@ class MyModel():
 		print('[Model] Training Completed. Model saved as %s' % save_fname)
 		timer.stop()
 
-
+	def eval_generator(self, data_gen, epochs, batch_size, steps_per_epoch, save_dir, modelType):
+		timer = Timer()
+		timer.start()
+		print('[Model] Evaluation Started')
+		print('[Model] %s epochs, %s batch size, %s batches per epoch' % (epochs, batch_size, steps_per_epoch))
+		
+		save_fname = os.path.join(save_dir, '%s-e%s.h5' % (dt.datetime.now().strftime('%d%m%Y-%H%M%S'), str(epochs)))
+		callbacks = [
+			ModelCheckpoint(filepath=save_fname, monitor='loss', save_best_only=True)
+		]
+		if modelType == ModelType.FUNCTIONAL: 
+			perf = 	self.func_model.evaluate_generator(
+						data_gen,
+						steps_per_epoch=steps_per_epoch,
+						epochs=epochs,
+						callbacks=callbacks,
+						workers=1
+					)
+		elif modelType == ModelType.SEQUENTIAL: 
+			perf = 	self.seq_model.evaluation_generator(
+						data_gen,
+						steps_per_epoch=steps_per_epoch,
+						epochs=epochs,
+						callbacks=callbacks,
+						workers=1
+					)
+		print('[Model] Evaluation Completed. Model saved as %s' % save_fname)
+		timer.stop()
+		return perf
 
 	def train_generator(self, data_gen, epochs, batch_size, steps_per_epoch, save_dir, modelType):
 		timer = Timer()
@@ -245,7 +273,6 @@ class MyModel():
 
 
 			return 
-
 
 	def predict_sequences_multiple(self, data, window_size, prediction_len, modelType):
 		#Predict sequence of 50 steps before shifting prediction run forward by 50 steps
