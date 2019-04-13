@@ -130,32 +130,46 @@ class MyModel():
 		print('[Model] Training Completed. Model saved as %s' % save_fname)
 		timer.stop()
 
-	def eval_generator(self, data_gen, epochs, batch_size, steps_per_epoch, save_dir, modelType):
+	def eval(self, x, y, batch_size, modelType):
+		timer = Timer()
+		timer.start()
+		print('[Model] Evaluation Started')
+		print('[Model] %s epochs, %s batch size' % (epochs, batch_size))
+		
+		perf = []
+		if modelType == ModelType.FUNCTIONAL: 
+			perf = self.func_model.evaluate(x, y)
+			print("TEST PERF: ", str(perf))
+		elif modelType == ModelType.SEQUENTIAL: 
+			perf = self.seq_model.evaluate(x, y)
+
+		print('[Model] Evaluation Completed. Model saved as %s' % save_fname)
+		timer.stop()
+		return perf
+
+	def eval_generator(self, data_gen, batch_size,save_dir, modelType):
 		timer = Timer()
 		timer.start()
 		print('[Model] Evaluation Started')
 		print('[Model] %s epochs, %s batch size, %s batches per epoch' % (epochs, batch_size, steps_per_epoch))
 		
 		save_fname = os.path.join(save_dir, '%s-e%s.h5' % (dt.datetime.now().strftime('%d%m%Y-%H%M%S'), str(epochs)))
-		callbacks = [
-			ModelCheckpoint(filepath=save_fname, monitor='loss', save_best_only=True)
-		]
+
 		perf = []
 		if modelType == ModelType.FUNCTIONAL: 
+			print("     EVALUATE FUNCTIONAL PERFORMANCE")
 			perf = 	self.func_model.evaluate_generator(
 						data_gen,
-						steps_per_epoch=steps_per_epoch,
-						epochs=epochs,
-						callbacks=callbacks,
-						workers=1
+						workers=1,
+						steps=50
 					)
+			print("***********PERFORMANCE: ", str(perf))
 		elif modelType == ModelType.SEQUENTIAL: 
-			perf = 	self.seq_model.evaluation_generator(
+			print("     EVALUATE SEQUENTIAL PERFORMANCE")
+			perf = 	self.seq_model.evaluate_generator(
 						data_gen,
-						steps_per_epoch=steps_per_epoch,
-						epochs=epochs,
-						callbacks=callbacks,
-						workers=1
+						workers=1,
+						steps=50
 					)
 		print('[Model] Evaluation Completed. Model saved as %s' % save_fname)
 		timer.stop()

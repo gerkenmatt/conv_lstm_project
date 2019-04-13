@@ -1,8 +1,3 @@
-__author__ = "Jakob Aungiers"
-__copyright__ = "Jakob Aungiers 2018"
-__version__ = "2.0.0"
-__license__ = "MIT"
-
 import os
 import json
 import time
@@ -12,7 +7,7 @@ from core.data_processor import DataLoader
 from core.mymodel import MyModel
 from core.mymodel import ModelType
 
-compareModels = True
+compareModels = False
 visualizeConvolution = False
 plotPredictions = False
 
@@ -50,6 +45,7 @@ def main():
         configs['data']['columns']
     )
 
+    # Build the model(s)
     model = MyModel()
     model.build_functional_model(configs)
     if compareModels: 
@@ -71,7 +67,7 @@ def main():
         save_dir = configs['model']['save_dir']
     )
     '''
-    # out-of memory generative training
+    # Train the models: out-of memory generative training
     steps_per_epoch = math.ceil((data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
     model.train_generator(
         data_gen=data.generate_train_batch(
@@ -114,33 +110,37 @@ def main():
 
     # Compare performance
     print("comparing models")
-    func_performance = model.train_generator(
+    func_train_perf = model.eval_generator(
         data_gen=data.generate_train_batch(
             seq_len=configs['data']['sequence_length'],
             batch_size=configs['training']['batch_size'],
             normalise=configs['data']['normalise']
         ),
-        epochs=configs['training']['epochs'],
         batch_size=configs['training']['batch_size'],
-        steps_per_epoch=steps_per_epoch,
         save_dir=configs['model']['save_dir'],
         modelType=ModelType.FUNCTIONAL
     )
-    print("FUNCTIONAL MODEL PERFORMANCE: ", str(func_performance))
+    func_test_perf = model.model.eval(
+        x=x_test,
+        y=y_test, 
+        batch_size=configs['training']['batch_size'], 
+        modelType=ModelType.FUNCTIONAL
+    )
+
+    print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
     if compareModels:
-        seq_performance = model.train_generator(
+        print("Evaluate Sequential Model Performance")
+        seq_train_perf = model.eval_generator(
             data_gen=data.generate_train_batch(
                 seq_len=configs['data']['sequence_length'],
                 batch_size=configs['training']['batch_size'],
                 normalise=configs['data']['normalise']
             ),
-            epochs=configs['training']['epochs'],
             batch_size=configs['training']['batch_size'],
-            steps_per_epoch=steps_per_epoch,
             save_dir=configs['model']['save_dir'],
             modelType=ModelType.SEQUENTIAL
         )    
-        print("SEQUENTIAL MODEL PERFORMANCE: ", str(seq_performance))
+        print("SEQUENTIAL MODEL TRAIN PERF: ", str(seq_train_perf))
 
     # Plot predictions on each of the models
     if plotPredictions:
