@@ -56,10 +56,6 @@ class MyModel():
 		print("BUILT FUNCTIONAL MODEL: ")
 		print(self.func_model.summary())
 
-		# print("BUILT AUXILIARY MODEL: ")
-		# print(self.aux_model.summary())
-		# print("")
-
 		plot_model(self.func_model, to_file='conv_lstm_plot.png')
 		timer.stop()
 
@@ -176,7 +172,7 @@ class MyModel():
 		return predicted
 
 	def conv_layer_analysis(self, data, window_size, prediction_len):
-		#Predict sequence of 50 steps before shifting prediction run forward by 50 steps
+		"""Visualization of convolutional layers and filters"""
 		print('[Model] Predicting Aux Sequences Multiple...')
 		prediction_seqs = []
 		print("********data length: ", str(len(data)))
@@ -251,7 +247,7 @@ class MyModel():
 			return 
 
 
-	def predict_sequences_multiple(self, data, window_size, prediction_len):
+	def predict_sequences_multiple(self, data, window_size, prediction_len, modelType):
 		#Predict sequence of 50 steps before shifting prediction run forward by 50 steps
 		print('[Model] Predicting Sequences Multiple...')
 		prediction_seqs = []
@@ -262,7 +258,10 @@ class MyModel():
 			# print("***********curr_frame shape: ", str(curr_frame.shape))
 			predicted = []
 			for j in range(prediction_len):
-				pred = self.seq_model.predict(curr_frame[newaxis,:,:])[0,0]
+				if modelType == ModelType.FUNCTIONAL: 
+					pred = self.func_model.predict(curr_frame[newaxis,:,:])[0,0]
+				elif modelType == ModelType.SEQUENTIAL: 
+					pred = self.seq_model.predict(curr_frame[newaxis,:,:])[0,0]
 				predicted.append(pred)
 				curr_frame = curr_frame[1:]
 				curr_frame = np.insert(curr_frame, [window_size-2], predicted[-1], axis=0)
@@ -270,13 +269,16 @@ class MyModel():
 			prediction_seqs.append(predicted)
 		return prediction_seqs
 
-	def predict_sequence_full(self, data, window_size):
+	def predict_sequence_full(self, data, window_size, modelType):
 		#Shift the window by 1 new prediction each time, re-run predictions on new window
 		print('[Model] Predicting Sequences Full...')
 		curr_frame = data[0]
 		predicted = []
 		for i in range(len(data)):
-			predicted.append(self.seq_model.predict(curr_frame[newaxis,:,:])[0,0])
+			if modelType == ModelType.FUNCTIONAL: 
+				predicted.append(self.func_model.predict(curr_frame[newaxis,:,:])[0,0])
+			elif modelType == ModelType.SEQUENTIAL: 
+				predicted.append(self.seq_model.predict(curr_frame[newaxis,:,:])[0,0])
 			curr_frame = curr_frame[1:]
 			curr_frame = np.insert(curr_frame, [window_size-2], predicted[-1], axis=0)
 		return predicted
