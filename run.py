@@ -113,9 +113,22 @@ def main():
         conv_predictions = model.conv_layer_analysis(x, configs['data']['sequence_length'], configs['data']['sequence_length'])
 
     # Compare performance
+    print("comparing models")
+    func_performance = model.train_generator(
+        data_gen=data.generate_train_batch(
+            seq_len=configs['data']['sequence_length'],
+            batch_size=configs['training']['batch_size'],
+            normalise=configs['data']['normalise']
+        ),
+        epochs=configs['training']['epochs'],
+        batch_size=configs['training']['batch_size'],
+        steps_per_epoch=steps_per_epoch,
+        save_dir=configs['model']['save_dir'],
+        modelType=ModelType.FUNCTIONAL
+    )
+    print("FUNCTIONAL MODEL PERFORMANCE: ", str(func_performance))
     if compareModels:
-        print("comparing models")
-        func_performance = model.train_generator(
+        seq_performance = model.train_generator(
             data_gen=data.generate_train_batch(
                 seq_len=configs['data']['sequence_length'],
                 batch_size=configs['training']['batch_size'],
@@ -125,22 +138,11 @@ def main():
             batch_size=configs['training']['batch_size'],
             steps_per_epoch=steps_per_epoch,
             save_dir=configs['model']['save_dir'],
-            modelType=ModelType.FUNCTIONAL
-        )
-        if compareModels:
-            seq_performance = model.train_generator(
-                data_gen=data.generate_train_batch(
-                    seq_len=configs['data']['sequence_length'],
-                    batch_size=configs['training']['batch_size'],
-                    normalise=configs['data']['normalise']
-                ),
-                epochs=configs['training']['epochs'],
-                batch_size=configs['training']['batch_size'],
-                steps_per_epoch=steps_per_epoch,
-                save_dir=configs['model']['save_dir'],
-                modelType=ModelType.SEQUENTIAL
-            )    
+            modelType=ModelType.SEQUENTIAL
+        )    
+        print("SEQUENTIAL MODEL PERFORMANCE: ", str(seq_performance))
 
+    # Plot predictions on each of the models
     if plotPredictions:
         # Run predictions on Functional model (with conv layers)
         func_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.FUNCTIONAL)

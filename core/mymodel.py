@@ -140,6 +140,7 @@ class MyModel():
 		callbacks = [
 			ModelCheckpoint(filepath=save_fname, monitor='loss', save_best_only=True)
 		]
+		perf = []
 		if modelType == ModelType.FUNCTIONAL: 
 			perf = 	self.func_model.evaluate_generator(
 						data_gen,
