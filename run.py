@@ -126,7 +126,8 @@ def main():
         batch_size=configs['training']['batch_size'], 
         modelType=ModelType.FUNCTIONAL
     )
-
+    seq_train_perf = 1
+    seq_test_perf = 1
     print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
     print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
     if compareModels:
@@ -147,11 +148,11 @@ def main():
             batch_size=configs['training']['batch_size'], 
             modelType=ModelType.SEQUENTIAL
         )
-        print("SEQUENTIAL MODEL TRAIN PERF: ", str(seq_train_perf))
-        print("SEQUENTIAL MODEL TEST PERF: ", str(seq_test_perf))
 
     print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
+    print("SEQUENTIAL MODEL TRAIN PERF: ", str(seq_train_perf))
     print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
+    print("SEQUENTIAL MODEL TEST PERF: ", str(seq_test_perf))
 
     # Plot predictions on each of the models
     if plotPredictions:

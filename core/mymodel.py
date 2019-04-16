@@ -33,14 +33,20 @@ class MyModel():
 		timer = Timer()
 		timer.start()
 
+		sequence_len = configs['data']['sequence_length'] - 1
+
 		# input tensor
-		inputs = Input(shape=(49,2))
+		inputs = Input(shape=(sequence_len,2))
 
 		# conv1d layer: feature extraction
-		feat_extract = Conv1D(filters=16, kernel_size=5, input_shape=(49, 2), padding='same' )(inputs)
+		feat_extract = Conv1D(
+			filters=16, 
+			kernel_size=5, 
+			input_shape=(sequence_len, 2), 
+			padding='same' )(inputs)
 
 		# lstm network
-		lstm1 = LSTM(100, input_shape=(49,16), return_sequences=True)(feat_extract)
+		lstm1 = LSTM(100, input_shape=(sequence_len,16), return_sequences=True)(feat_extract)
 		dropout1 = Dropout(0.2)(lstm1)
 		lstm2 = LSTM(100, return_sequences=True)(dropout1)
 		lstm3 = LSTM(100, return_sequences=False)(lstm2)
