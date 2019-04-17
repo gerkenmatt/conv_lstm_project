@@ -39,14 +39,14 @@ class MyModel():
 		inputs = Input(shape=(sequence_len,2))
 
 		# conv1d layer: feature extraction
-		feat_extract = Conv1D(
-			filters=16, 
-			kernel_size=5, 
-			input_shape=(sequence_len, 2), 
-			padding='same' )(inputs)
+		# feat_extract = Conv1D(
+		# 	filters=16, 
+		# 	kernel_size=5, 
+		# 	input_shape=(sequence_len, 2), 
+		# 	padding='same' )(inputs)
 
 		# lstm network
-		lstm1 = LSTM(100, input_shape=(sequence_len,16), return_sequences=True)(feat_extract)
+		lstm1 = LSTM(100, input_shape=(sequence_len,16), return_sequences=True)(inputs)
 		dropout1 = Dropout(0.2)(lstm1)
 		lstm2 = LSTM(100, return_sequences=True)(dropout1)
 		lstm3 = LSTM(100, return_sequences=False)(lstm2)
@@ -57,7 +57,7 @@ class MyModel():
 		self.func_model = Model(inputs=inputs,outputs=predictions)
 		self.func_model.compile(optimizer='adam', loss='mse')
 
-		self.aux_model = Model(inputs=inputs, outputs=feat_extract)
+		# self.aux_model = Model(inputs=inputs, outputs=feat_extract)
 
 		print("BUILT FUNCTIONAL MODEL: ")
 		print(self.func_model.summary())
@@ -111,7 +111,7 @@ class MyModel():
 		
 		save_fname = os.path.join(save_dir, '%s-e%s.h5' % (dt.datetime.now().strftime('%d%m%Y-%H%M%S'), str(epochs)))
 		callbacks = [
-			EarlyStopping(monitor='val_loss', patience=2),
+			# EarlyStopping(monitor='val_loss', patience=2),
 			ModelCheckpoint(filepath=save_fname, monitor='val_loss', save_best_only=True)
 		]
 		if modelType == ModelType.FUNCTIONAL: 

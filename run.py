@@ -9,7 +9,7 @@ from core.mymodel import ModelType
 
 compareModels = True
 visualizeConvolution = False
-plotPredictions = False
+plotPredictions = True
 
 def plot_results(predicted_data, true_data):
     fig = plt.figure(facecolor='white')
@@ -57,15 +57,25 @@ def main():
     )
 
 
-    '''
+    
     # in-memory training
     model.train(
         x,
         y,
         epochs = configs['training']['epochs'],
         batch_size = configs['training']['batch_size'],
-        save_dir = configs['model']['save_dir']
+        save_dir = configs['model']['save_dir'],
+        modelType=ModelType.FUNCTIONAL
     )
+    if compareModels: 
+        model.train(
+            x,
+            y,
+            epochs = configs['training']['epochs'],
+            batch_size = configs['training']['batch_size'],
+            save_dir = configs['model']['save_dir'],
+            modelType=ModelType.SEQUENTIAL
+        )    
     '''
     # Train the models: out-of memory generative training
     steps_per_epoch = math.ceil((data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
@@ -94,7 +104,7 @@ def main():
             save_dir=configs['model']['save_dir'],
             modelType=ModelType.SEQUENTIAL
         )    
-
+    '''
 
     x_test, y_test = data.get_test_data(
         seq_len=configs['data']['sequence_length'],
@@ -128,8 +138,8 @@ def main():
     )
     seq_train_perf = 1
     seq_test_perf = 1
-    print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
-    print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
+    # print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
+    # print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
     if compareModels:
         print("Evaluate Sequential Model Performance")
         seq_train_perf = model.eval_generator(
@@ -157,14 +167,30 @@ def main():
     # Plot predictions on each of the models
     if plotPredictions:
         # Run predictions on Functional model (with conv layers)
-        func_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.FUNCTIONAL)
-        plot_results_multiple(func_predictions, y, configs['data']['sequence_length'], True)
+        func_predictions = model.predict_sequences_multiple(
+            x_test, 
+            configs['data']['sequence_length'], 
+            configs['data']['sequence_length'], 
+            ModelType.FUNCTIONAL)
+        plot_results_multiple(
+            func_predictions, 
+            y_test, 
+            configs['data']['sequence_length'], 
+            True)
 
 
         # Run predictions on Sequential model
         if compareModels:
-            seq_predictions = model.predict_sequences_multiple(x, configs['data']['sequence_length'], configs['data']['sequence_length'], ModelType.SEQUENTIAL)
-            plot_results_multiple(seq_predictions, y, configs['data']['sequence_length'], True)
+            seq_predictions = model.predict_sequences_multiple(
+                x_test, 
+                configs['data']['sequence_length'], 
+                configs['data']['sequence_length'], 
+                ModelType.SEQUENTIAL)
+            plot_results_multiple(
+                seq_predictions, 
+                y_test, 
+                configs['data']['sequence_length'], 
+                True)
 
 
 
