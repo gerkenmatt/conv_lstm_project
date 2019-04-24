@@ -38,20 +38,21 @@ class MyModel():
 		# input tensor
 		inputs = Input(shape=(sequence_len,2))
 
+		filter_num = 2#16
 		# conv1d layer: feature extraction
 		# feat_extract = Conv1D(
-		# 	filters=16, 
+		# 	filters=filter_num, 
 		# 	kernel_size=5, 
 		# 	input_shape=(sequence_len, 2), 
 		# 	padding='same' )(inputs)
 
 		# lstm network
-		lstm1 = LSTM(100, input_shape=(sequence_len,16), return_sequences=True)(inputs)
+		lstm1 = LSTM(100, input_shape=(sequence_len,filter_num), return_sequences=False)(inputs)
 		dropout1 = Dropout(0.2)(lstm1)
-		lstm2 = LSTM(100, return_sequences=True)(dropout1)
-		lstm3 = LSTM(100, return_sequences=False)(lstm2)
-		dropout2 = Dropout(0.2)(lstm3)
-		predictions = Dense(1, activation='linear')(dropout2)
+		# lstm2 = LSTM(100, return_sequences=True)(dropout1)
+		# lstm3 = LSTM(100, return_sequences=False)(dropout1)
+		# dropout2 = Dropout(0.2)(lstm3)
+		predictions = Dense(1, activation='linear')(dropout1)
 
 		# build the model
 		self.func_model = Model(inputs=inputs,outputs=predictions)

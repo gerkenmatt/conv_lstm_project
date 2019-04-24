@@ -10,8 +10,10 @@ class DataLoader():
         i_split = int(len(dataframe) * split)
         self.data_train = dataframe.get(cols).values[:i_split]
         self.data_test  = dataframe.get(cols).values[i_split:]
+        self.data_total = dataframe.get(cols).values[:]
         self.len_train  = len(self.data_train)
         self.len_test   = len(self.data_test)
+        self.len_total  = len(self.data_total)
         self.len_train_windows = None
 
     def get_test_data(self, seq_len, normalise):
@@ -44,6 +46,20 @@ class DataLoader():
             data_x.append(x)
             data_y.append(y)
         return np.array(data_x), np.array(data_y)
+
+    def get_total_data(self, seq_len, normalise):
+        """Use for debugging: if we want to plot the total data or perform some other operations on it"""
+        data_x = []
+        data_y = []
+        for i in range(self.len_total - seq_len):
+            x, y = self._next_window_total(i, seq_len, normalise)
+            data_x.append(x)
+            data_y.append(y)
+        data_y = np.array(data_y)
+        print("data_y.shape: ", str(data_y.shape))
+
+        # shift the data up so we can see it in the plot
+        return data_y + 0.5
 
     def generate_train_batch(self, seq_len, batch_size, normalise):
         '''Yield a generator of training data from filename on given list of cols split for train/test'''
@@ -83,6 +99,14 @@ class DataLoader():
     def _next_window(self, i, seq_len, normalise):
         '''Generates the next data window from the given index location i'''
         window = self.data_train[i:i+seq_len]
+        window = self.normalise_windows(window, single_window=True)[0] if normalise else window
+        x = window[:-1]
+        y = window[-1, [0]]
+        return x, y
+
+    def _next_window_total(self, i, seq_len, normalise):
+        '''Generates the next data window from the given index location i'''
+        window = self.data_total[i:i+seq_len]
         window = self.normalise_windows(window, single_window=True)[0] if normalise else window
         x = window[:-1]
         y = window[-1, [0]]

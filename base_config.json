@@ -23,6 +23,20 @@
 				"neurons": 100,
 				"input_timesteps": 49,
 				"input_dim": 2,
+				"return_seq": true
+			},
+			{
+				"type": "dropout",
+				"rate": 0.2
+			},
+			{
+				"type": "lstm",
+				"neurons": 100,
+				"return_seq": true
+			},
+			{
+				"type": "lstm",
+				"neurons": 100,
 				"return_seq": false
 			},
 			{
