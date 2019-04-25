@@ -38,16 +38,17 @@ class MyModel():
 		# input tensor
 		inputs = Input(shape=(sequence_len,2))
 
-		filter_num = 2#16
+		filter_num = 64
 		# conv1d layer: feature extraction
-		# feat_extract = Conv1D(
-		# 	filters=filter_num, 
-		# 	kernel_size=5, 
-		# 	input_shape=(sequence_len, 2), 
-		# 	padding='same' )(inputs)
+		feat_extract = Conv1D(
+			filters=filter_num, 
+			kernel_size=5, 
+			input_shape=(sequence_len, 2), 
+			padding='same' )(inputs)
 
+		dropout0 = Dropout(0.3)(feat_extract)
 		# lstm network
-		lstm1 = LSTM(100, input_shape=(sequence_len,filter_num), return_sequences=False)(inputs)
+		lstm1 = LSTM(100, input_shape=(sequence_len,filter_num), return_sequences=False)(dropout0)
 		dropout1 = Dropout(0.2)(lstm1)
 		# lstm2 = LSTM(100, return_sequences=True)(dropout1)
 		# lstm3 = LSTM(100, return_sequences=False)(dropout1)

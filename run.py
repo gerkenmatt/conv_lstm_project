@@ -9,8 +9,8 @@ from core.mymodel import ModelType
 import numpy as np
 from scipy.ndimage.interpolation import shift
 
-useSeqModel = True
-useFuncModel = False
+useSeqModel = False
+useFuncModel = True
 visualizeConvolution = False
 plotPredictions = True
 plotData = False
@@ -79,7 +79,7 @@ def plot_train_test_total(train, test, total, seq_len):
     plt.show()
 
 def main():
-    configs = json.load(open('airline_config.json', 'r'))
+    configs = json.load(open('config.json', 'r'))
     if not os.path.exists(configs['model']['save_dir']): os.makedirs(configs['model']['save_dir'])
 
     data = DataLoader(
@@ -235,7 +235,18 @@ def main():
                 y, 
                 configs['data']['sequence_length'], 
                 True)
-
+                        # Run predictions on Functional model (with conv layers)
+            func_predictions_test = model.predict_sequences_multiple(
+                x_test, 
+                configs['data']['sequence_length'], 
+                configs['data']['sequence_length'], 
+                ModelType.FUNCTIONAL)
+            plot_results_multiple(
+                func_predictions_test, 
+                y_test, 
+                configs['data']['sequence_length'], 
+                True)
+    
 
         # Run predictions on Sequential model
         if useSeqModel:
