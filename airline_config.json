@@ -4,12 +4,12 @@
 		"columns": [
 			"Value"
 		],
-		"sequence_length": 20,
-		"train_test_split": 0.6,
+		"sequence_length": 7,
+		"train_test_split": 0.9,
 		"normalise": true
 	},
 	"training": {
-		"epochs": 100,
+		"epochs": 200,
 		"batch_size": 32
 	},
 	"model": {
@@ -20,7 +20,7 @@
 			{
 				"type": "lstm",
 				"neurons": 100,
-				"input_timesteps": 19,
+				"input_timesteps": 6,
 				"input_dim": 1,
 				"return_seq": false
 			},

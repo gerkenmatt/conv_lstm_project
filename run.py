@@ -13,6 +13,8 @@ useSeqModel = True
 useFuncModel = False
 visualizeConvolution = False
 plotPredictions = True
+plotData = False
+evaluatePerformance = False
 
 def plot_results(predicted_data, true_data):
     fig = plt.figure(facecolor='white')
@@ -20,6 +22,25 @@ def plot_results(predicted_data, true_data):
     ax.plot(true_data, label='True Data')
     plt.plot(predicted_data, label='Prediction')
     plt.legend()
+    plt.show()
+
+def plot_results_multiple_over_total(predicted_data, true_data, prediction_len, normalised, start_index):
+    fig = plt.figure(facecolor='white')
+    ax = fig.add_subplot(111)
+    ax.plot(true_data, label='True Data')
+    ax.set_xticks(range(200), minor=True)
+    print("start index: ", str(start_index))
+    print("prediction_len: ")
+    index = start_index
+    # Pad the list of predictions to shift it in the graph to it's correct start
+    for i, d in enumerate(predicted_data):
+        data = d.copy()
+        if not normalised:
+            data[:] += true_data[index]
+            index += prediction_len
+        padding = [None for p in range(i * prediction_len + start_index)]
+        plt.plot(padding + data)#, label='Prediction')
+        plt.legend()
     plt.show()
 
 def plot_results_multiple(predicted_data, true_data, prediction_len, normalised):
@@ -44,12 +65,12 @@ def plot_data(x):
     ax.plot(x)
     plt.show()
 
-def plot_train_test_total(train, test, total):
+def plot_train_test_total(train, test, total, seq_len):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     ax.plot(train)
     print("test shape: ", str(test.shape))
-    new_test = np.full((train.size,1), np.NaN)
+    new_test = np.full((train.size + seq_len,1), np.NaN)
     print("new test shape: ", str(new_test.shape))
 
     new_test = np.concatenate([new_test, test])
@@ -87,13 +108,12 @@ def main():
     data_total = data.get_total_data(
         seq_len=configs['data']['sequence_length'], 
         normalise=True)
-    print("y.shape: ", str(y.shape))
-    print("y_test.shape: ", str(y_test.shape))
-    print("data_total.shape: ", str(data_total.shape))
-    plot_train_test_total(y, y_test, data_total)
-    # plot_data(np.concatenate([y, y_test], axis=1))
+    if plotData: 
+        print("y.shape: ", str(y.shape))
+        print("y_test.shape: ", str(y_test.shape))
+        print("data_total.shape: ", str(data_total.shape))
+        plot_train_test_total(y, y_test, data_total + 1, configs['data']['sequence_length'])
 
-    return 
     
     # in-memory training
     if useFuncModel:
@@ -156,7 +176,7 @@ def main():
     print("comparing models")
     func_train_perf = 1
     func_test_perf = 1
-    if useFuncModel:
+    if useFuncModel and evaluatePerformance:
         func_train_perf = model.eval_generator(
             data_gen=data.generate_train_batch(
                 seq_len=configs['data']['sequence_length'],
@@ -177,7 +197,7 @@ def main():
     seq_test_perf = 1
     # print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
     # print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
-    if useSeqModel:
+    if useSeqModel and evaluatePerformance:
         print("Evaluate Sequential Model Performance")
         seq_train_perf = model.eval_generator(
             data_gen=data.generate_train_batch(
@@ -224,11 +244,12 @@ def main():
                 configs['data']['sequence_length'], 
                 configs['data']['sequence_length'], 
                 ModelType.SEQUENTIAL)
-            plot_results_multiple(
+            plot_results_multiple_over_total(
                 seq_predictions, 
-                y, 
+                data_total, 
                 configs['data']['sequence_length'], 
-                True)
+                True, 
+                0)
 
 
 

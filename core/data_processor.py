@@ -16,6 +16,9 @@ class DataLoader():
         self.len_total  = len(self.data_total)
         self.len_train_windows = None
 
+    def get_len_train(self):
+        return self.len_train
+
     def get_test_data(self, seq_len, normalise):
         '''
         Create x, y test data windows
@@ -48,18 +51,21 @@ class DataLoader():
         return np.array(data_x), np.array(data_y)
 
     def get_total_data(self, seq_len, normalise):
+        print("len_train: ", str(self.len_train) )
+        print("len_test: ", str(self.len_test) )
+        print("len_total: ", str(self.len_total) )
         """Use for debugging: if we want to plot the total data or perform some other operations on it"""
         data_x = []
         data_y = []
-        for i in range(self.len_total - seq_len):
+        for i in range(self.len_total ):
             x, y = self._next_window_total(i, seq_len, normalise)
             data_x.append(x)
             data_y.append(y)
         data_y = np.array(data_y)
-        print("data_y.shape: ", str(data_y.shape))
 
+        print("")
         # shift the data up so we can see it in the plot
-        return data_y + 0.5
+        return data_y
 
     def generate_train_batch(self, seq_len, batch_size, normalise):
         '''Yield a generator of training data from filename on given list of cols split for train/test'''

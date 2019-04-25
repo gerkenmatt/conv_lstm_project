@@ -164,7 +164,7 @@ class MyModel():
 			perf = 	self.func_model.evaluate_generator(
 						data_gen,
 						workers=1,
-						steps=50
+						steps=100
 					)
 			print("***********PERFORMANCE: ", str(perf))
 		elif modelType == ModelType.SEQUENTIAL: 
@@ -172,7 +172,7 @@ class MyModel():
 			perf = 	self.seq_model.evaluate_generator(
 						data_gen,
 						workers=1,
-						steps=50
+						steps=100
 					)
 		print('[Model] Evaluation Completed. ')
 		timer.stop()
