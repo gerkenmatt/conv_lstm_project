@@ -28,8 +28,19 @@ class DataLoader():
             diff.append(value)
         return Series(diff)
 
+    # invert differenced forecast
+    def inverse_difference(self, last_ob, dataset):
+        # invert first forecast
+        inverted = list()
+        inverted.append(dataset[0] + last_ob)
+        # propagate difference forecast using inverted first value
+        for i in range(1, len(dataset)):
+            inverted.append(dataset[i] + inverted[i-1])
+        return inverted
+
+
     # difference the data then scale it to values between -1, 1
-    def normalise_data(self, raw_values):
+    def transform_data(self, raw_values):
 
         # transform data to be stationary: values are now the differences between adjacent points
         diff_series = self.difference(raw_values, 1)
@@ -40,8 +51,24 @@ class DataLoader():
         scaler = MinMaxScaler(feature_range=(-1, 1))
         scaled_values = scaler.fit_transform(diff_values)
         scaled_values = scaled_values.reshape(len(scaled_values), 1)
-        return scaled_values
+        return scaler, scaled_values
 
+    # inverse data transform on forecasts
+    def inverse_transform(self, last_ob, dataset, scaler):
+        
+        print("INVERSE TRANSFORM: ")
+        print("   dataset.shape: ", str(dataset.shape))
+        print("   last_ob: ", str(last_ob))
+
+        #inverse scaling
+        inv_scale = scaler.inverse_transform(dataset.flatten())
+        print("inv_scale: ", str(inv_scale))
+
+        inv_scale = inv_scale[0, :]
+
+        #invert difference
+        inv_diff = self.inverse_difference(last_ob, inv_scale)
+        return inv_diff
 
 
     def get_len_train(self):

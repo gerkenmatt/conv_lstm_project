@@ -110,8 +110,16 @@ def main():
     data_total = data.get_total_data(
         seq_len=configs['data']['sequence_length'], 
         normalise=False)
-    normed = data.normalise_data(data_total)
-    plot_data(normed)
+    last_ob = data_total[0][0]
+    print("last_ob: ", str(last_ob))
+    print("data_tatal shape: ", str(data_total.shape))
+    scaler, normalised_data = data.transform_data(data_total)
+    print("norm data shape: ", str(normalised_data.shape))
+    plot_data(normalised_data)
+
+    inv_trans = data.inverse_transform(last_ob, normalised_data, scaler)
+    plot_data(inv_trans)
+    return 
 
 
     # Build the model(s)
