@@ -1,6 +1,9 @@
 import math
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+from pandas import Series
+
 
 class DataLoader():
     """A class for loading and transforming data for the lstm model"""
@@ -15,6 +18,31 @@ class DataLoader():
         self.len_test   = len(self.data_test)
         self.len_total  = len(self.data_total)
         self.len_train_windows = None
+
+    # create a differenced series
+    def difference(self, dataset, interval=1):
+        diff = list()
+        for i in range(interval, len(dataset)):
+            # new value is the difference between the two adjacent points
+            value = dataset[i] - dataset[i - interval]
+            diff.append(value)
+        return Series(diff)
+
+    # difference the data then scale it to values between -1, 1
+    def normalise_data(self, raw_values):
+
+        # transform data to be stationary: values are now the differences between adjacent points
+        diff_series = self.difference(raw_values, 1)
+        diff_values = diff_series.values
+        diff_values = diff_values.reshape(len(diff_values), 1)
+        
+        # rescale values to be between -1, 1
+        scaler = MinMaxScaler(feature_range=(-1, 1))
+        scaled_values = scaler.fit_transform(diff_values)
+        scaled_values = scaled_values.reshape(len(scaled_values), 1)
+        return scaled_values
+
+
 
     def get_len_train(self):
         return self.len_train
@@ -48,7 +76,7 @@ class DataLoader():
             x, y = self._next_window(i, seq_len, normalise)
             data_x.append(x)
             data_y.append(y)
-        return np.array(data_x), np.array(data_y)
+        return np.array(data_x), np.array(data_y), float(self.data_train[0][0])
 
     def get_total_data(self, seq_len, normalise):
         print("len_train: ", str(self.len_train) )
@@ -63,7 +91,6 @@ class DataLoader():
             data_y.append(y)
         data_y = np.array(data_y)
 
-        print("")
         # shift the data up so we can see it in the plot
         return data_y
 
@@ -122,11 +149,18 @@ class DataLoader():
         '''Normalise window with a base value of zero'''
         normalised_data = []
         window_data = [window_data] if single_window else window_data
+        
+        #using single window most of the time, so this doesn't matter
         for window in window_data:
             normalised_window = []
+
+            # iterate through each time-point in the series
             for col_i in range(window.shape[1]):
+                # normalisation arithmetic
                 normalised_col = [((float(p) / float(window[0, col_i])) - 1) for p in window[:, col_i]]
                 normalised_window.append(normalised_col)
+
             normalised_window = np.array(normalised_window).T # reshape and transpose array back into original multidimensional format
             normalised_data.append(normalised_window)
         return np.array(normalised_data)
+

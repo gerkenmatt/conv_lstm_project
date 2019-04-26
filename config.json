@@ -6,11 +6,11 @@
 			"Volume"
 		],
 		"sequence_length": 50,
-		"train_test_split": 0.85,
+		"train_test_split": 0.5,
 		"normalise": true
 	},
 	"training": {
-		"epochs": 30,
+		"epochs": 1,
 		"batch_size": 32
 	},
 	"model": {

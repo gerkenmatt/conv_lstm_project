@@ -43,7 +43,7 @@ class MyModel():
 		feat_extract = Conv1D(
 			filters=filter_num, 
 			kernel_size=5, 
-			input_shape=(sequence_len, 2), 
+			input_shape=(sequence_len, 1), 
 			padding='same' )(inputs)
 
 		dropout0 = Dropout(0.3)(feat_extract)

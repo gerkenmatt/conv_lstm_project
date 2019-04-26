@@ -16,6 +16,18 @@ plotPredictions = True
 plotData = False
 evaluatePerformance = False
 
+
+def denormalise_window(window_data, y0):
+    #might need to be denormalised_data[0] instead of window[0]
+    denormalised_0 = (float(window_data[0][0]) + 1) * float(y0)
+
+    print("window_data[0]: ", str(window_data[0][0]))
+    print("y0: ", str(y0))
+    print("denormalised_0: ", str(denormalised_0))
+    denormalised_data = [ ( (float(p[0]) + 1) * y0 ) for p in window_data[1:]]
+    print("denormalised_data: ", str(denormalised_data[:15]))
+    return np.array(denormalised_data)
+
 def plot_results(predicted_data, true_data):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
@@ -43,14 +55,20 @@ def plot_results_multiple_over_total(predicted_data, true_data, prediction_len, 
         plt.legend()
     plt.show()
 
-def plot_results_multiple(predicted_data, true_data, prediction_len, normalised):
+def plot_results_multiple(predicted_data, true_data, prediction_len, normalised, denormalise, y0):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
-    ax.plot(true_data, label='True Data')
     index = 0
+    if denormalise: 
+        true_data = true_data.copy()
+        true_data = denormalise_window(true_data, y0)
+
+    ax.plot(true_data, label='True Data')
     # Pad the list of predictions to shift it in the graph to it's correct start
     for i, d in enumerate(predicted_data):
         data = d.copy()
+        if False:#denormalise: 
+            data = denormalise_window(data, y0)
         if not normalised:
             data[:] += true_data[index]
             index += prediction_len
@@ -88,6 +106,14 @@ def main():
         configs['data']['columns']
     )
 
+    #Verify supplied data
+    data_total = data.get_total_data(
+        seq_len=configs['data']['sequence_length'], 
+        normalise=False)
+    normed = data.normalise_data(data_total)
+    plot_data(normed)
+
+
     # Build the model(s)
     model = MyModel()
     if useFuncModel:
@@ -95,24 +121,25 @@ def main():
     if useSeqModel: 
         model.build_sequential_model(configs)
 
-    x, y = data.get_train_data(
+    x, y, y0 = data.get_train_data(
         seq_len=configs['data']['sequence_length'],
         normalise=configs['data']['normalise']
     )
+    print("x shape: ", str(x.shape))
+    print("y shape: ", str(y.shape))
+    print("y0: ", str(y0))
 
     x_test, y_test = data.get_test_data(
         seq_len=configs['data']['sequence_length'],
         normalise=configs['data']['normalise']
     )
 
-    data_total = data.get_total_data(
-        seq_len=configs['data']['sequence_length'], 
-        normalise=True)
     if plotData: 
         print("y.shape: ", str(y.shape))
         print("y_test.shape: ", str(y_test.shape))
         print("data_total.shape: ", str(data_total.shape))
-        plot_train_test_total(y, y_test, data_total + 1, configs['data']['sequence_length'])
+        plot_data(data_total)
+        # plot_train_test_total(y, y_test, data_total + 1, configs['data']['sequence_length'])
 
     
     # in-memory training
@@ -234,18 +261,29 @@ def main():
                 func_predictions, 
                 y, 
                 configs['data']['sequence_length'], 
-                True)
+                True, 
+                True,
+                y0
+                )
                         # Run predictions on Functional model (with conv layers)
             func_predictions_test = model.predict_sequences_multiple(
                 x_test, 
                 configs['data']['sequence_length'], 
                 configs['data']['sequence_length'], 
                 ModelType.FUNCTIONAL)
+            plot_results_multiple_over_total(
+                func_predictions, 
+                data_total, 
+                configs['data']['sequence_length'], 
+                True, 
+                0)
             plot_results_multiple(
                 func_predictions_test, 
                 y_test, 
                 configs['data']['sequence_length'], 
-                True)
+                True, 
+                False,
+                0)
     
 
         # Run predictions on Sequential model
@@ -254,7 +292,7 @@ def main():
                 x, 
                 configs['data']['sequence_length'], 
                 configs['data']['sequence_length'], 
-                ModelType.SEQUENTIAL)
+                ModelType.SEQUENTIAL, )
             plot_results_multiple_over_total(
                 seq_predictions, 
                 data_total, 
