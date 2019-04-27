@@ -5,7 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from pandas import Series
 
 
-class DataLoader():
+class DataFetcher():
     """A class for loading and transforming data for the lstm model"""
 
     def __init__(self, filename, split, cols):
@@ -22,7 +22,7 @@ class DataLoader():
 
     # create a differenced series
     def difference(self, dataset, interval=1):
-        diff = list()
+        diff = []
         for i in range(interval, len(dataset)):
             # new value is the difference between the two adjacent points
             value = dataset[i] - dataset[i - interval]
@@ -30,13 +30,15 @@ class DataLoader():
         return Series(diff)
 
     # invert differenced forecast
-    def inverse_difference(self, last_ob, dataset):
+    def inverse_difference(self, last_ob, forecast):
         # invert first forecast
-        inverted = list()
-        inverted.append(dataset[0] + last_ob)
+        inverted = []
+
+        first = forecast[0] + last_ob
+        inverted.append(first)
         # propagate difference forecast using inverted first value
-        for i in range(1, len(dataset)):
-            inverted.append(dataset[i] + inverted[i-1])
+        for i in range(1, len(forecast)):
+            inverted.append(forecast[i] + inverted[i-1])
         return inverted
 
 
@@ -74,10 +76,44 @@ class DataLoader():
         inv_diff = self.inverse_difference(last_ob, inv_scale)
         return inv_diff
 
+    # inverse data transform on forecasts
+    def inverse_transform_forecasts(self, true_data, forecasts, scaler, seq_len):
+        inverted = []
+        print("Inverse Transform Forecasts...")
+
+        print("true_data shape: ", str(true_data.shape))
+        #iterate through each forecast
+        for i in range(len(forecasts)):
+            if (i % 10) == 0:
+                print("forecast #", str(i))
+
+            # create array from forecast
+            forecast = np.array(forecasts[i])
+            # print("   FORECAST shape: ", str(forecast.shape))
+            forecast = forecast.reshape(1, len(forecast))
+
+            # invert scaling
+            # print("   RESHAPED: ", str(forecast))
+            inv_scale = scaler.inverse_transform(forecast)
+            # print("   inv_scale.shape: ", str(inv_scale.shape))
+            inv_scale = inv_scale[0, :].flatten()
+            # print("   inv_scale.shape2: ", str(inv_scale.shape))
+
+            # invert differencing
+            index = i * seq_len
+            last_ob = true_data[index]
+            inv_diff = self.inverse_difference(last_ob, inv_scale)
+            # print("inv_diff.shape: ", str(inv_diff.shape))
+            # store
+            inverted.append(inv_diff)
+        inverted = inverted
+        # print("INVERTED shape: ", str(inverted.shape))
+        return inverted
+
     def update_data(self, total_data):
         self.data_total = total_data
-        self.data_train = total_data
-        self.data_test = total_data
+        self.data_train = total_data[:self.i_split]
+        self.data_test  = total_data[self.i_split:]
 
 
     def get_len_train(self):
@@ -94,7 +130,6 @@ class DataLoader():
             data_windows.append(self.data_test[i:i+seq_len])
 
         data_windows = np.array(data_windows).astype(float)
-        data_windows = self.normalise_windows(data_windows, single_window=False) if normalise else data_windows
 
         x = data_windows[:, :-1]
         y = data_windows[:, -1, [0]]
@@ -168,7 +203,6 @@ class DataLoader():
     def _next_window(self, i, seq_len, normalise):
         '''Generates the next data window from the given index location i'''
         window = self.data_train[i:i+seq_len]
-        window = self.normalise_windows(window, single_window=True)[0] if normalise else window
         x = window[:-1]
         y = window[-1, [0]]
         return x, y
@@ -176,27 +210,6 @@ class DataLoader():
     def _next_window_total(self, i, seq_len, normalise):
         '''Generates the next data window from the given index location i'''
         window = self.data_total[i:i+seq_len]
-        window = self.normalise_windows(window, single_window=True)[0] if normalise else window
         x = window[:-1]
         y = window[-1, [0]]
         return x, y
-
-    def normalise_windows(self, window_data, single_window=False):
-        '''Normalise window with a base value of zero'''
-        normalised_data = []
-        window_data = [window_data] if single_window else window_data
-        
-        #using single window most of the time, so this doesn't matter
-        for window in window_data:
-            normalised_window = []
-
-            # iterate through each time-point in the series
-            for col_i in range(window.shape[1]):
-                # normalisation arithmetic
-                normalised_col = [((float(p) / float(window[0, col_i])) - 1) for p in window[:, col_i]]
-                normalised_window.append(normalised_col)
-
-            normalised_window = np.array(normalised_window).T # reshape and transpose array back into original multidimensional format
-            normalised_data.append(normalised_window)
-        return np.array(normalised_data)
-

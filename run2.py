@@ -4,6 +4,7 @@ import time
 import math
 import matplotlib.pyplot as plt
 from core.data_processor import DataLoader
+from core.data_fetcher import DataFetcher
 from core.mymodel import MyModel
 from core.mymodel import ModelType
 import numpy as np
@@ -15,18 +16,6 @@ visualizeConvolution = False
 plotPredictions = True
 plotData = False
 evaluatePerformance = False
-
-
-def denormalise_window(window_data, y0):
-    #might need to be denormalised_data[0] instead of window[0]
-    denormalised_0 = (float(window_data[0][0]) + 1) * float(y0)
-
-    print("window_data[0]: ", str(window_data[0][0]))
-    print("y0: ", str(y0))
-    print("denormalised_0: ", str(denormalised_0))
-    denormalised_data = [ ( (float(p[0]) + 1) * y0 ) for p in window_data[1:]]
-    print("denormalised_data: ", str(denormalised_data[:15]))
-    return np.array(denormalised_data)
 
 def plot_results(predicted_data, true_data):
     fig = plt.figure(facecolor='white')
@@ -55,20 +44,15 @@ def plot_results_multiple_over_total(predicted_data, true_data, prediction_len, 
         plt.legend()
     plt.show()
 
-def plot_results_multiple(predicted_data, true_data, prediction_len, normalised, denormalise, y0):
+def plot_results_multiple(predicted_data, true_data, prediction_len, normalised):
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     index = 0
-    if denormalise: 
-        true_data = true_data.copy()
-        true_data = denormalise_window(true_data, y0)
 
     ax.plot(true_data, label='True Data')
     # Pad the list of predictions to shift it in the graph to it's correct start
     for i, d in enumerate(predicted_data):
         data = d.copy()
-        if False:#denormalise: 
-            data = denormalise_window(data, y0)
         if not normalised:
             data[:] += true_data[index]
             index += prediction_len
@@ -100,25 +84,27 @@ def main():
     configs = json.load(open('config.json', 'r'))
     if not os.path.exists(configs['model']['save_dir']): os.makedirs(configs['model']['save_dir'])
 
-    data = DataLoader(
+    data = DataFetcher(
         os.path.join('data', configs['data']['filename']),
         configs['data']['train_test_split'],
         configs['data']['columns']
     )
 
     # Get data and normalise it first
-    # data_total = data.get_total_data(
-    #     seq_len=configs['data']['sequence_length'], 
-    #     normalise=False)
-    # last_ob = data_total[0][0]
-    # print("last_ob: ", str(last_ob))
-    # print("data_tatal shape: ", str(data_total.shape))
-    # scaler, normalised_data = data.transform_data(data_total)
-    # print("norm data shape: ", str(normalised_data.shape))
-    # if plotData:
-    #     plot_data(normalised_data)
+    data_total = data.get_total_data(
+        seq_len=configs['data']['sequence_length'], 
+        normalise=False)
+    i_split = int(len(data_total) * configs['data']['train_test_split'])
+    raw_train_data = data_total[:i_split]
+    last_ob = data_total[0][0]
+    print("last_ob: ", str(last_ob))
+    print("data_tatal shape: ", str(data_total.shape))
+    scaler, normalised_data = data.transform_data(data_total)
+    print("norm data shape: ", str(normalised_data.shape))
+    if plotData:
+        plot_data(normalised_data)
 
-    # data.update_data(normalised_data)
+    data.update_data(normalised_data)
     
     # Get training and test data
     x, y = data.get_train_data(
@@ -138,6 +124,12 @@ def main():
     print("y_test shape: ", str(y_test.shape))
     if plotData:
         plot_data(y_test.flatten())
+    
+    #inverse transform to verify it works
+    inv_trans = data.inverse_transform(last_ob, normalised_data, scaler)
+    if plotData:
+        plot_data(inv_trans)
+
 
     # Build the model(s)
     model = MyModel()
@@ -178,93 +170,7 @@ def main():
             save_dir = configs['model']['save_dir'],
             modelType=ModelType.SEQUENTIAL
         )    
-    '''
-    # Train the models: out-of memory generative training
-    steps_per_epoch = math.ceil((data.len_train - configs['data']['sequence_length']) / configs['training']['batch_size'])
-    model.train_generator(
-        data_gen=data.generate_train_batch(
-            seq_len=configs['data']['sequence_length'],
-            batch_size=configs['training']['batch_size'],
-            normalise=configs['data']['normalise']
-        ),
-        epochs=configs['training']['epochs'],
-        batch_size=configs['training']['batch_size'],
-        steps_per_epoch=steps_per_epoch,
-        save_dir=configs['model']['save_dir'],
-        modelType=ModelType.FUNCTIONAL
-    )
-    if useSeqModel:
-        model.train_generator(
-            data_gen=data.generate_train_batch(
-                seq_len=configs['data']['sequence_length'],
-                batch_size=configs['training']['batch_size'],
-                normalise=configs['data']['normalise']
-            ),
-            epochs=configs['training']['epochs'],
-            batch_size=configs['training']['batch_size'],
-            steps_per_epoch=steps_per_epoch,
-            save_dir=configs['model']['save_dir'],
-            modelType=ModelType.SEQUENTIAL
-        )    
-    '''
-
-
-
-
-    # Visualize convolutional layer operations on raw training data 
-    if visualizeConvolution and useFuncModel: 
-        print("*****x shape: ", str(x.shape))
-        conv_predictions = model.conv_layer_analysis(x, configs['data']['sequence_length'], configs['data']['sequence_length'])
-
-    # Compare performance
-    print("comparing models")
-    func_train_perf = 1
-    func_test_perf = 1
-    if useFuncModel and evaluatePerformance:
-        func_train_perf = model.eval_generator(
-            data_gen=data.generate_train_batch(
-                seq_len=configs['data']['sequence_length'],
-                batch_size=configs['training']['batch_size'],
-                normalise=configs['data']['normalise']
-            ),
-            batch_size=configs['training']['batch_size'],
-            save_dir=configs['model']['save_dir'],
-            modelType=ModelType.FUNCTIONAL
-        )
-        func_test_perf = model.eval(
-            x=x_test,
-            y=y_test, 
-            batch_size=configs['training']['batch_size'], 
-            modelType=ModelType.FUNCTIONAL
-        )
-    seq_train_perf = 1
-    seq_test_perf = 1
-    # print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
-    # print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
-    if useSeqModel and evaluatePerformance:
-        print("Evaluate Sequential Model Performance")
-        seq_train_perf = model.eval_generator(
-            data_gen=data.generate_train_batch(
-                seq_len=configs['data']['sequence_length'],
-                batch_size=configs['training']['batch_size'],
-                normalise=configs['data']['normalise']
-            ),
-            batch_size=configs['training']['batch_size'],
-            save_dir=configs['model']['save_dir'],
-            modelType=ModelType.SEQUENTIAL
-        )    
-        seq_test_perf = model.eval(
-            x=x_test,
-            y=y_test, 
-            batch_size=configs['training']['batch_size'], 
-            modelType=ModelType.SEQUENTIAL
-        )
-
-    print("FUNCTIONAL MODEL TRAIN PERF: ", str(func_train_perf))
-    print("SEQUENTIAL MODEL TRAIN PERF: ", str(seq_train_perf))
-    print("FUNCTIONAL MODEL TEST PERF: ", str(func_test_perf))
-    print("SEQUENTIAL MODEL TEST PERF: ", str(seq_test_perf))
-
+ 
     # Plot predictions on each of the models
     if plotPredictions:
         if useFuncModel:
@@ -274,16 +180,22 @@ def main():
                 configs['data']['sequence_length'], 
                 configs['data']['sequence_length'], 
                 ModelType.FUNCTIONAL)
-            print("y.shape: ", str(y.shape))
-            plot_results_multiple(
+            # print("func_pred shape: ", str(np.array(func_predictions).shape))
+            raw_func_preds = data.inverse_transform_forecasts(
+                normalised_data, 
                 func_predictions, 
-                y, 
+                scaler,
+                configs['data']['sequence_length'])
+            # print("raw_func_preds.shape: ", str(raw_func_preds.shape))
+            print("normalised data shape: ", str(normalised_data.shape))
+            plot_results_multiple(
+                raw_func_preds, 
+                raw_train_data, 
                 configs['data']['sequence_length'], 
-                True, 
-                True,
-                y0
-                )
-                        # Run predictions on Functional model (with conv layers)
+                False)
+            return 
+
+            # Predict on test data
             func_predictions_test = model.predict_sequences_multiple(
                 x_test, 
                 configs['data']['sequence_length'], 
@@ -299,9 +211,7 @@ def main():
                 func_predictions_test, 
                 y_test, 
                 configs['data']['sequence_length'], 
-                True, 
-                False,
-                0)
+                True)
     
 
         # Run predictions on Sequential model

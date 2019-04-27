@@ -36,7 +36,7 @@ class MyModel():
 		sequence_len = configs['data']['sequence_length'] - 1
 
 		# input tensor
-		inputs = Input(shape=(sequence_len,2))
+		inputs = Input(shape=(sequence_len,1))
 
 		filter_num = 64
 		# conv1d layer: feature extraction
@@ -110,6 +110,7 @@ class MyModel():
 		timer.start()
 		print('[Model] Training Started')
 		print('[Model] %s epochs, %s batch size' % (epochs, batch_size))
+		print("x shape: ", str(x.shape))
 		
 		save_fname = os.path.join(save_dir, '%s-e%s.h5' % (dt.datetime.now().strftime('%d%m%Y-%H%M%S'), str(epochs)))
 		callbacks = [
@@ -296,10 +297,13 @@ class MyModel():
 	def predict_sequences_multiple(self, data, window_size, prediction_len, modelType):
 		#Predict sequence of 50 steps before shifting prediction run forward by 50 steps
 		print('[Model] Predicting Sequences Multiple...')
+		print("  Total predictions: ", str(int(len(data)/prediction_len)))
 		prediction_seqs = []
 		# print("********data length: ", str(len(data)))
 		# print("******data: ", str(data))
 		for i in range(int(len(data)/prediction_len)):
+			if (i %10) == 0:
+				print("   prediction #", str(i))
 			curr_frame = data[i*prediction_len]
 			# print("***********curr_frame shape: ", str(curr_frame.shape))
 			predicted = []
