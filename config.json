@@ -5,11 +5,11 @@
 			"Close"
 		],
 		"sequence_length": 50,
-		"train_test_split": 0.3,
+		"train_test_split": 0.1,
 		"normalise": true
 	},
 	"training": {
-		"epochs": 10,
+		"epochs": 1,
 		"batch_size": 32
 	},
 	"model": {
