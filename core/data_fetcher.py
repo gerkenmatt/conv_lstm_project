@@ -41,18 +41,27 @@ class DataFetcher():
             inverted.append(forecast[i] + inverted[i-1])
         return inverted
 
+    def reshape_scaled_data(self, last_ob, forecast):
+        inverted = []
+
+        first = forecast[0] 
+        inverted.append(first)
+
+        for i in range(1, len(forecast)):
+            inverted.append(forecast[i])
+        return inverted
 
     # difference the data then scale it to values between -1, 1
     def transform_data(self, raw_values):
 
         # transform data to be stationary: values are now the differences between adjacent points
-        diff_series = self.difference(raw_values, 1)
-        diff_values = diff_series.values
-        diff_values = diff_values.reshape(len(diff_values), 1)
+        # diff_series = self.difference(raw_values, 1)
+        # diff_values = diff_series.values
+        # diff_values = diff_values.reshape(len(diff_values), 1)
         
         # rescale values to be between -1, 1
         scaler = MinMaxScaler(feature_range=(-1, 1))
-        scaled_values = scaler.fit_transform(diff_values)
+        scaled_values = scaler.fit_transform(raw_values)
         scaled_values = scaled_values.reshape(len(scaled_values), 1)
         return scaler, scaled_values
 
@@ -71,6 +80,7 @@ class DataFetcher():
         print("inv_scale: ", str(inv_scale))
 
         inv_scale = inv_scale[0, :]
+        return inv_scale
 
         #invert difference
         inv_diff = self.inverse_difference(last_ob, inv_scale)
@@ -93,19 +103,15 @@ class DataFetcher():
             forecast = forecast.reshape(1, len(forecast))
 
             # invert scaling
-            # print("   RESHAPED: ", str(forecast))
             inv_scale = scaler.inverse_transform(forecast)
-            # print("   inv_scale.shape: ", str(inv_scale.shape))
             inv_scale = inv_scale[0, :].flatten()
-            # print("   inv_scale.shape2: ", str(inv_scale.shape))
 
             # invert differencing
             index = i * seq_len
             last_ob = true_data[index]
-            inv_diff = self.inverse_difference(last_ob, inv_scale)
-            # print("inv_diff.shape: ", str(inv_diff.shape))
-            # store
+            inv_diff = self.reshape_scaled_data(last_ob, inv_scale)
             inverted.append(inv_diff)
+            
         inverted = inverted
         # print("INVERTED shape: ", str(inverted.shape))
         return inverted

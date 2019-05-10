@@ -9,7 +9,7 @@
 		"normalise": true
 	},
 	"training": {
-		"epochs": 10,
+		"epochs": 3,
 		"batch_size": 32
 	},
 	"model": {
