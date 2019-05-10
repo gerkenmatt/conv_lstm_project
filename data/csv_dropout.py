@@ -7,7 +7,7 @@ print("file name: ", str(sys.argv[1]))
 new_file_name = data_file.split('.')[0] + "_dropout.csv"
 print("new file name: ", new_file_name)
 
-dropout = 1	# number of lines to save before we remove a line
+dropout = 4	# number of lines to save before we remove a line
 drop = 0
 
 with open(data_file, 'r') as f: 

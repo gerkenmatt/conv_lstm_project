@@ -137,6 +137,7 @@ class MyModel():
 			self.seq_model.save(save_fname)
 
 		print('[Model] Training Completed. Model saved as %s' % save_fname)
+
 		timer.stop()
 
 	def eval(self, x, y, batch_size, modelType):

@@ -190,6 +190,11 @@ def main():
             # print("raw_func_preds.shape: ", str(raw_func_preds.shape))
             print("normalised data shape: ", str(normalised_data.shape))
             plot_results_multiple(
+                func_predictions, 
+                normalised_data, 
+                configs['data']['sequence_length'], 
+                True)
+            plot_results_multiple(
                 raw_func_preds, 
                 raw_train_data, 
                 configs['data']['sequence_length'], 
