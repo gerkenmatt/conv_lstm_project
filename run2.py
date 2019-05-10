@@ -54,6 +54,7 @@ def plot_results_multiple(predicted_data, true_data, prediction_len, normalised)
     for i, d in enumerate(predicted_data):
         data = d.copy()
         if not normalised:
+            print("NORMALIZING")
             data[:] += true_data[index]
             index += prediction_len
         padding = [None for p in range(i * prediction_len)]
@@ -192,8 +193,7 @@ def main():
                 raw_func_preds, 
                 raw_train_data, 
                 configs['data']['sequence_length'], 
-                False)
-            return 
+                True)
 
             # Predict on test data
             func_predictions_test = model.predict_sequences_multiple(
@@ -201,17 +201,23 @@ def main():
                 configs['data']['sequence_length'], 
                 configs['data']['sequence_length'], 
                 ModelType.FUNCTIONAL)
-            plot_results_multiple_over_total(
+            raw_func_preds = data.inverse_transform_forecasts(
+                normalised_data, 
                 func_predictions, 
-                data_total, 
-                configs['data']['sequence_length'], 
-                True, 
-                0)
+                scaler,
+                configs['data']['sequence_length'])
+            # plot_results_multiple_over_total(
+            #     func_predictions, 
+            #     data_total, 
+            #     configs['data']['sequence_length'], 
+            #     True, 
+            #     0)
             plot_results_multiple(
                 func_predictions_test, 
                 y_test, 
                 configs['data']['sequence_length'], 
                 True)
+            return
     
 
         # Run predictions on Sequential model
