@@ -163,21 +163,17 @@ class MyModel():
 		
 		perf = []
 		if modelType == ModelType.FUNCTIONAL: 
-			print("     EVALUATE FUNCTIONAL PERFORMANCE")
 			perf = 	self.func_model.evaluate_generator(
 						data_gen,
 						workers=1,
 						steps=100
 					)
-			print("***********PERFORMANCE: ", str(perf))
 		elif modelType == ModelType.SEQUENTIAL: 
-			print("     EVALUATE SEQUENTIAL PERFORMANCE")
 			perf = 	self.seq_model.evaluate_generator(
 						data_gen,
 						workers=1,
 						steps=100
 					)
-		print('[Model] Evaluation Completed. ')
 		timer.stop()
 		return perf
 
@@ -300,13 +296,10 @@ class MyModel():
 		print('[Model] Predicting Sequences Multiple...')
 		print("  Total predictions: ", str(int(len(data)/prediction_len)))
 		prediction_seqs = []
-		# print("********data length: ", str(len(data)))
-		# print("******data: ", str(data))
 		for i in range(int(len(data)/prediction_len)):
 			if (i %10) == 0:
 				print("   prediction #", str(i))
 			curr_frame = data[i*prediction_len]
-			# print("***********curr_frame shape: ", str(curr_frame.shape))
 			predicted = []
 			for j in range(prediction_len):
 				if modelType == ModelType.FUNCTIONAL: 
@@ -316,7 +309,6 @@ class MyModel():
 				predicted.append(pred)
 				curr_frame = curr_frame[1:]
 				curr_frame = np.insert(curr_frame, [window_size-2], predicted[-1], axis=0)
-			# print("******prediction list len: ", len(predicted))
 			prediction_seqs.append(predicted)
 		return prediction_seqs
 

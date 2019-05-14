@@ -88,8 +88,7 @@ def main():
                 ModelType.FUNCTIONAL)
             raw_func_preds = data.inverse_transform_forecasts(
                 normalised_data, 
-                func_predictions, 
-                # scaler,
+                func_predictions,
                 configs['data']['sequence_length'])
             plt.plot_results_multiple(
                 raw_func_preds, 
