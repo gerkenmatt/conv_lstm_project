@@ -7,7 +7,7 @@ from core.mymodel import MyModel
 from core.mymodel import ModelType
 import numpy as np
 from scipy.ndimage.interpolation import shift
-import plot_utils as plt
+import core.plot_utils as plt
 
 useSeqModel = False
 useFuncModel = True
@@ -15,6 +15,11 @@ visualizeConvolution = False
 plotPredictions = True
 plotData = False
 evaluatePerformance = False
+
+def plot_inverse_transform(data, normalised_data):
+    last_ob = data.total_data(False)[0][0]
+    inv_trans = data.inverse_transform(last_ob, normalised_data)
+    plt.plot_data(inv_trans, "inverse transform")
 
 def main():
     configs = json.load(open('config.json', 'r'))
@@ -26,54 +31,23 @@ def main():
         configs['data']['columns']
     )
 
-
-
-
-    # Get data and normalise it first
-    # data_total = data.get_total_data(
-    #     seq_len=configs['data']['sequence_length'], 
-    #     normalise=False)
-
-    # print("data_total: ", str(data_total.shape))
-    # i_split = int(len(data_total) * configs['data']['train_test_split'])
-    # raw_train_data = data_total[:i_split]
-    # last_ob = data_total[0][0]
-    # scaler, normalised_data = data.transform_data(data_total)
+    # Get data for plotting later
     raw_train_data = data.train_data(norm=False)
-    scaler = data.get_scaler()
     normalised_data = data.total_data(norm=True)
 
-
-
-    if plotData:
-        plot_data(normalised_data)
-
-    # data.update_data(normalised_data)
-
-
-
-
-    
     # Get training and test data
     x, y = data.get_train_data(
         seq_len=configs['data']['sequence_length'],
         normalise=False
     )
-    if plotData:
-        plot_data(y.flatten())
-
     x_test, y_test = data.get_test_data(
         seq_len=configs['data']['sequence_length'],
         normalise=False
     )
-    if plotData:
-        plot_data(y_test.flatten())
-    
 
     #inverse transform to verify it works
-    # inv_trans = data.inverse_transform(last_ob, normalised_data, scaler)
     if plotData:
-        plot_data(inv_trans)
+        plot_inverse_transform(data, normalised_data)
 
 
     # Build the model(s)
@@ -82,21 +56,8 @@ def main():
         model.build_functional_model(configs)
     if useSeqModel: 
         model.build_sequential_model(configs)
-
-    # x, y = data.get_train_data(
-    #     seq_len=configs['data']['sequence_length'],
-    #     normalise=configs['data']['normalise']
-    # )
-
-    if plotData: 
-        print("y.shape: ", str(y.shape))
-        print("y_test.shape: ", str(y_test.shape))
-        print("data_total.shape: ", str(data_total.shape))
-        plot_data(data_total)
-        # plot_train_test_total(y, y_test, data_total + 1, configs['data']['sequence_length'])
-
     
-    # in-memory training
+    # Train the model(s)
     if useFuncModel:
         model.train(
             x,
@@ -128,7 +89,7 @@ def main():
             raw_func_preds = data.inverse_transform_forecasts(
                 normalised_data, 
                 func_predictions, 
-                scaler,
+                # scaler,
                 configs['data']['sequence_length'])
             plt.plot_results_multiple(
                 raw_func_preds, 
@@ -136,6 +97,7 @@ def main():
                 configs['data']['sequence_length'], 
                 True,
                 "Raw Train Predictions")
+            return 
 
             # Predict on test data
             func_predictions_test = model.predict_sequences_multiple(
@@ -146,7 +108,7 @@ def main():
             raw_func_preds_test = data.inverse_transform_forecasts(
                 normalised_data, 
                 func_predictions_test, 
-                scaler,
+                # scaler,
                 configs['data']['sequence_length'])
             # plot_results_multiple_over_total(
             #     func_predictions, 

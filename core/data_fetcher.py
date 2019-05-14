@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from pandas import Series
+from . import plot_utils as plt
 
 
 class DataFetcher():
@@ -20,9 +21,9 @@ class DataFetcher():
         self.len_total  = len(self.data_total)
         self.len_train_windows = None
 
+        #normalise the data
         total_data = self.data_total.copy()
         last_ob = total_data[0][0]
-
         self.scaler, self.data_total_norm = self.transform_data(total_data)
         self.data_train_norm = self.data_total_norm[:self.i_split]
         self.data_test_norm  = self.data_total_norm[self.i_split:]
@@ -86,18 +87,12 @@ class DataFetcher():
         return scaler, scaled_values
 
     # inverse data transform on forecasts
-    def inverse_transform(self, last_ob, dataset, scaler):
+    def inverse_transform(self, last_ob, dataset):
         
-        print("INVERSE TRANSFORM: ")
         dataset = dataset.copy().transpose()
 
-        print("   dataset.shape: ", str(dataset.shape))
-        print("   last_ob: ", str(last_ob))
-
         #inverse scaling
-        inv_scale = scaler.inverse_transform(dataset)
-        print("inv_scale.shape: ", str(inv_scale.shape))
-        print("inv_scale: ", str(inv_scale))
+        inv_scale = self.scaler.inverse_transform(dataset)
 
         inv_scale = inv_scale[0, :]
         return inv_scale
@@ -107,11 +102,10 @@ class DataFetcher():
         # return inv_diff
 
     # inverse data transform on forecasts
-    def inverse_transform_forecasts(self, true_data, forecasts, scaler, seq_len):
+    def inverse_transform_forecasts(self, true_data, forecasts, seq_len):
         inverted = []
         print("Inverse Transform Forecasts...")
 
-        print("true_data shape: ", str(true_data.shape))
         #iterate through each forecast
         for i in range(len(forecasts)):
             if (i % 10) == 0:
@@ -123,7 +117,7 @@ class DataFetcher():
             forecast = forecast.reshape(1, len(forecast))
 
             # invert scaling
-            inv_scale = scaler.inverse_transform(forecast)
+            inv_scale = self.scaler.inverse_transform(forecast)
             inv_scale = inv_scale[0, :].flatten()
 
             # invert differencing
@@ -136,12 +130,6 @@ class DataFetcher():
         # print("INVERTED shape: ", str(inverted.shape))
         return inverted
 
-    def update_data(self, total_data):
-        self.data_total = total_data
-        self.data_train = total_data[:self.i_split]
-        self.data_test  = total_data[self.i_split:]
-
-
     def get_len_train(self):
         return self.len_train
 
@@ -153,7 +141,7 @@ class DataFetcher():
         '''
         data_windows = []
         for i in range(self.len_test - seq_len):
-            data_windows.append(self.data_test[i:i+seq_len])
+            data_windows.append(self.data_test_norm[i:i+seq_len])
 
         data_windows = np.array(data_windows).astype(float)
 
@@ -176,9 +164,6 @@ class DataFetcher():
         return np.array(data_x), np.array(data_y)
 
     def get_total_data(self, seq_len, normalise):
-        print("len_train: ", str(self.len_train) )
-        print("len_test: ", str(self.len_test) )
-        print("len_total: ", str(self.len_total) )
         """Use for debugging: if we want to plot the total data or perform some other operations on it"""
         data_x = []
         data_y = []
@@ -228,14 +213,14 @@ class DataFetcher():
 
     def _next_window(self, i, seq_len, normalise):
         '''Generates the next data window from the given index location i'''
-        window = self.data_train[i:i+seq_len]
+        window = self.data_train_norm[i:i+seq_len]
         x = window[:-1]
         y = window[-1, [0]]
         return x, y
 
     def _next_window_total(self, i, seq_len, normalise):
         '''Generates the next data window from the given index location i'''
-        window = self.data_total[i:i+seq_len]
+        window = self.data_total_norm[i:i+seq_len]
         x = window[:-1]
         y = window[-1, [0]]
         return x, y
