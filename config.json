@@ -1,6 +1,6 @@
 {
 	"data": {
-		"filename": "AMD_dropout.csv",
+		"filename": "sp500_dropout.csv",
 		"columns": [
 			"Close"
 		],

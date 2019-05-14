@@ -20,6 +20,26 @@ class DataFetcher():
         self.len_total  = len(self.data_total)
         self.len_train_windows = None
 
+        total_data = self.data_total.copy()
+        last_ob = total_data[0][0]
+
+        self.scaler, self.data_total_norm = self.transform_data(total_data)
+        self.data_train_norm = self.data_total_norm[:self.i_split]
+        self.data_test_norm  = self.data_total_norm[self.i_split:]
+
+    def train_data(self, norm):
+        if norm: 
+            return self.data_train_norm.copy()
+        return self.data_train.copy()
+
+    def total_data(self, norm):
+        if norm: 
+            return self.data_total_norm.copy()
+        return self.data_total.copy()
+
+    def get_scaler(self):
+        return self.scaler
+
     # create a differenced series
     def difference(self, dataset, interval=1):
         diff = []
@@ -51,8 +71,8 @@ class DataFetcher():
             inverted.append(forecast[i])
         return inverted
 
-    # difference the data then scale it to values between -1, 1
     def transform_data(self, raw_values):
+        """difference the data then scale it to values between -1, 1"""
 
         # transform data to be stationary: values are now the differences between adjacent points
         # diff_series = self.difference(raw_values, 1)

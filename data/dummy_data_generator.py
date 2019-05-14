@@ -9,7 +9,7 @@ Fs = 1000		# sample frequency
 x = np.arange(samples)
 sin1 = np.sin(2 * np.pi * f1 * x / Fs) * 20
 sin2 = np.sin(2 * np.pi * 2 * x / 200) * x / 100
-sin3 = np.sin(2 * np.pi * 0.5 * x / 1000) * 20
+sin3 = np.sin(2 * np.pi * 0.5 * x / 1000) * 20 / x
 y = sin1 + sin2 + sin3
 plt.plot(x, y)
 plt.show()
