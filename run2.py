@@ -16,6 +16,53 @@ plotPredictions = True
 plotData = False
 evaluatePerformance = False
 
+def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_train_data, x_test, y_test):
+
+    if modelType == ModelType.FUNCTIONAL:
+        model_title = " [Functional]"
+    else:
+        model_title = " [Sequential]"
+    predictions = model.predict_sequences_multiple(
+        x, 
+        configs['data']['sequence_length'], 
+        configs['data']['sequence_length'], 
+        modelType)
+    raw_func_preds = data.inverse_transform_forecasts(
+        normalised_data, 
+        predictions,
+        configs['data']['sequence_length'])
+    plt.plot_results_multiple(
+        raw_func_preds, 
+        raw_train_data, 
+        configs['data']['sequence_length'], 
+        True,
+        "Raw Train Predictions" + model_title)
+
+    # Predict on test data
+    func_predictions_test = model.predict_sequences_multiple(
+        x_test, 
+        configs['data']['sequence_length'], 
+        configs['data']['sequence_length'], 
+        modelType)
+    raw_func_preds_test = data.inverse_transform_forecasts(
+        normalised_data, 
+        func_predictions_test, 
+        # scaler,
+        configs['data']['sequence_length'])
+    # plot_results_multiple_over_total(
+    #     func_predictions, 
+    #     data_total, 
+    #     configs['data']['sequence_length'], 
+    #     True, 
+    #     0)
+    plt.plot_results_multiple(
+        func_predictions_test, 
+        y_test, 
+        configs['data']['sequence_length'], 
+        True,
+        "Test Predictions" + model_title)
+
+
 def plot_inverse_transform(data, normalised_data):
     last_ob = data.total_data(False)[0][0]
     inv_trans = data.inverse_transform(last_ob, normalised_data)
@@ -80,62 +127,12 @@ def main():
     # Plot predictions on each of the models
     if plotPredictions:
         if useFuncModel:
-            # Run predictions on Functional model (with conv layers)
-            func_predictions = model.predict_sequences_multiple(
-                x, 
-                configs['data']['sequence_length'], 
-                configs['data']['sequence_length'], 
-                ModelType.FUNCTIONAL)
-            raw_func_preds = data.inverse_transform_forecasts(
-                normalised_data, 
-                func_predictions,
-                configs['data']['sequence_length'])
-            plt.plot_results_multiple(
-                raw_func_preds, 
-                raw_train_data, 
-                configs['data']['sequence_length'], 
-                True,
-                "Raw Train Predictions")
-
-            # Predict on test data
-            func_predictions_test = model.predict_sequences_multiple(
-                x_test, 
-                configs['data']['sequence_length'], 
-                configs['data']['sequence_length'], 
-                ModelType.FUNCTIONAL)
-            raw_func_preds_test = data.inverse_transform_forecasts(
-                normalised_data, 
-                func_predictions_test, 
-                # scaler,
-                configs['data']['sequence_length'])
-            # plot_results_multiple_over_total(
-            #     func_predictions, 
-            #     data_total, 
-            #     configs['data']['sequence_length'], 
-            #     True, 
-            #     0)
-            plt.plot_results_multiple(
-                func_predictions_test, 
-                y_test, 
-                configs['data']['sequence_length'], 
-                True,
-                "Test Predictions")
-    
+            plot_predictions(model, data, ModelType.FUNCTIONAL, configs, x, normalised_data, raw_train_data, x_test, y_test)
 
         # Run predictions on Sequential model
         if useSeqModel:
-            seq_predictions = model.predict_sequences_multiple(
-                x, 
-                configs['data']['sequence_length'], 
-                configs['data']['sequence_length'], 
-                ModelType.SEQUENTIAL, )
-            plt.plot_results_multiple_over_total(
-                seq_predictions, 
-                data_total, 
-                configs['data']['sequence_length'], 
-                True, 
-                0)
-
+            plot_predictions(model, data, ModelType.SEQUENTIAL, configs, x, normalised_data, raw_train_data, x_test, y_test)
+            
 
 
 
