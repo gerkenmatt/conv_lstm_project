@@ -9,7 +9,7 @@ import numpy as np
 from scipy.ndimage.interpolation import shift
 import core.plot_utils as plt
 
-useSeqModel = False
+useSeqModel = True
 useFuncModel = True
 visualizeConvolution = False
 plotPredictions = True
@@ -96,7 +96,6 @@ def main():
                 configs['data']['sequence_length'], 
                 True,
                 "Raw Train Predictions")
-            return 
 
             # Predict on test data
             func_predictions_test = model.predict_sequences_multiple(
@@ -121,7 +120,6 @@ def main():
                 configs['data']['sequence_length'], 
                 True,
                 "Test Predictions")
-            return
     
 
         # Run predictions on Sequential model

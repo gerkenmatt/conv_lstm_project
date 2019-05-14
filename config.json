@@ -34,5 +34,10 @@
 				"activation": "linear"
 			}
 		]
+	},
+	"func_model": {
+		"filters": 64,
+		"kernel" : 5, 
+		"dropout": 0.3
 	}
 }

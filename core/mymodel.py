@@ -38,18 +38,21 @@ class MyModel():
 		# input tensor
 		inputs = Input(shape=(sequence_len,1))
 
-		filter_num = 64
+		filter_num = configs['func_model']['filters']
+		print("filter num: ", str(filter_num))
+		kernel_size = configs['func_model']['kernel']
+		dropout = configs['func_model']['dropout']
 		# conv1d layer: feature extraction
 		feat_extract = Conv1D(
 			filters=filter_num, 
-			kernel_size=5, 
+			kernel_size=kernel_size, 
 			input_shape=(sequence_len, 1), 
 			padding='same' )(inputs)
 
-		dropout0 = Dropout(0.3)(feat_extract)
+		dropout0 = Dropout(dropout)(feat_extract)
 		# lstm network
 		lstm1 = LSTM(100, input_shape=(sequence_len,filter_num), return_sequences=False)(dropout0)
-		dropout1 = Dropout(0.2)(lstm1)
+		dropout1 = Dropout(dropout)(lstm1)
 		# lstm2 = LSTM(100, return_sequences=True)(dropout1)
 		# lstm3 = LSTM(100, return_sequences=False)(dropout1)
 		# dropout2 = Dropout(0.2)(lstm3)
@@ -64,9 +67,7 @@ class MyModel():
 		print("BUILT FUNCTIONAL MODEL: ")
 		print(self.func_model.summary())
 
-		plot_model(self.func_model, to_file='conv_lstm_plot.png')
 		timer.stop()
-
 
 
 	def build_sequential_model(self, configs):

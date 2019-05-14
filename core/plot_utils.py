@@ -1,6 +1,5 @@
 
 import matplotlib.pyplot as plt
-from data_fetcher import DataFetcher
 
 def plot_results(predicted_data, true_data):
     """plot prediction over true data"""
