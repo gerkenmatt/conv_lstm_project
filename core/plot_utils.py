@@ -72,3 +72,9 @@ def plot_train_test_total(train, test, total, seq_len):
     plt.plot(new_test)
     plt.plot(total)
     plt.show()
+
+
+def plot_inverse_transform(data, normalised_data):
+    last_ob = data.total_data(False)[0][0]
+    inv_trans = data.inverse_transform(last_ob, normalised_data)
+    plt.plot_data(inv_trans, "inverse transform")

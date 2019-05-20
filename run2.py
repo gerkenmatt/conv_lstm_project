@@ -9,7 +9,7 @@ import numpy as np
 from scipy.ndimage.interpolation import shift
 import core.plot_utils as plt
 
-useSeqModel = True
+useSeqModel = False
 useFuncModel = True
 visualizeConvolution = False
 plotPredictions = True
@@ -63,11 +63,6 @@ def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_tr
         "Test Predictions" + model_title)
 
 
-def plot_inverse_transform(data, normalised_data):
-    last_ob = data.total_data(False)[0][0]
-    inv_trans = data.inverse_transform(last_ob, normalised_data)
-    plt.plot_data(inv_trans, "inverse transform")
-
 def main():
     configs = json.load(open('config.json', 'r'))
     if not os.path.exists(configs['model']['save_dir']): os.makedirs(configs['model']['save_dir'])
@@ -94,7 +89,7 @@ def main():
 
     #inverse transform to verify it works
     if plotData:
-        plot_inverse_transform(data, normalised_data)
+        plt.plot_inverse_transform(data, normalised_data)
 
 
     # Build the model(s)

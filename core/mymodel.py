@@ -8,6 +8,7 @@ from keras.models import Model, Sequential, load_model
 from keras.layers import Input, Dense, Activation, Dropout, LSTM, Conv1D
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.utils import plot_model
+from keras.optimizers import Adam
 import matplotlib.pyplot as plt
 from enum import Enum
 
@@ -34,6 +35,7 @@ class MyModel():
 		timer.start()
 
 		sequence_len = configs['data']['sequence_length'] - 1
+		lr = configs['func_model']['learning']
 
 		# input tensor
 		inputs = Input(shape=(sequence_len,1))
@@ -60,7 +62,9 @@ class MyModel():
 
 		# build the model
 		self.func_model = Model(inputs=inputs,outputs=predictions)
-		self.func_model.compile(optimizer='adam', loss='mse')
+		# self.func_model.compile(optimizer='adam', loss='mse')
+		self.func_model.compile(optimizer=Adam(lr=lr), loss='mse')
+
 
 		# self.aux_model = Model(inputs=inputs, outputs=feat_extract)
 
@@ -74,6 +78,7 @@ class MyModel():
 		timer = Timer()
 		timer.start()
 		sequence_len = configs['data']['sequence_length'] 
+		lr = configs['model']['learning']
 
 		for layer in configs['model']['layers']:
 			neurons = layer['neurons'] if 'neurons' in layer else None
@@ -96,7 +101,8 @@ class MyModel():
 				self.conv1d_input_shape = (None, sequence_len-1, input_dim)
 				self.seq_model.add(Conv1D(filters=filters, kernel_size=kernel_size, input_shape=(sequence_len-1, input_dim), padding=padding ))
 
-		self.seq_model.compile(loss=configs['model']['loss'], optimizer=configs['model']['optimizer'])
+		self.seq_model.compile(loss=configs['model']['loss'], optimizer=Adam(lr=lr))
+			# configs['model']['optimizer'])
 
 		print('[Model] Model Compiled')
 		for layer in self.seq_model.layers:
