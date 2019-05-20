@@ -4,7 +4,7 @@
 		"columns": [
 			"Close"
 		],
-		"sequence_length": 80,
+		"sequence_length": 30,
 		"train_test_split": 0.5,
 		"normalise": true
 	},
@@ -13,7 +13,7 @@
 		"batch_size": 32
 	},
 	"model": {
-		"learning":0.01,
+		"learning":0.003,
 		"loss": "mse",
 		"optimizer": "adam",
 		"save_dir": "saved_models",
@@ -21,7 +21,7 @@
 			{
 				"type": "lstm",
 				"neurons": 100,
-				"input_timesteps": 49,
+				"input_timesteps": 29,
 				"input_dim": 1,
 				"return_seq": false
 			},
@@ -37,7 +37,7 @@
 		]
 	},
 	"func_model": {
-		"learning":0.007,
+		"learning":0.005,
 		"filters": 64,
 		"kernel" : 5, 
 		"dropout": 0.3

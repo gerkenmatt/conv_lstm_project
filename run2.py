@@ -9,14 +9,14 @@ import numpy as np
 from scipy.ndimage.interpolation import shift
 import core.plot_utils as plt
 
-useSeqModel = False
+useSeqModel = True
 useFuncModel = True
 visualizeConvolution = False
 plotPredictions = True
 plotData = False
 evaluatePerformance = False
 
-def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_train_data, x_test, y_test):
+def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_train_data, x_test, y_test, y):
 
     if modelType == ModelType.FUNCTIONAL:
         model_title = " [Functional]"
@@ -32,10 +32,14 @@ def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_tr
         predictions,
         configs['data']['sequence_length'])
     plt.plot_results_multiple(
+        predictions, 
+        y, 
+        configs['data']['sequence_length'], 
+        "Normalised predictions" + model_title)
+    plt.plot_results_multiple(
         raw_func_preds, 
         raw_train_data, 
         configs['data']['sequence_length'], 
-        True,
         "Raw Train Predictions" + model_title)
 
     # Predict on test data
@@ -47,7 +51,6 @@ def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_tr
     raw_func_preds_test = data.inverse_transform_forecasts(
         normalised_data, 
         func_predictions_test, 
-        # scaler,
         configs['data']['sequence_length'])
     # plot_results_multiple_over_total(
     #     func_predictions, 
@@ -59,7 +62,6 @@ def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_tr
         func_predictions_test, 
         y_test, 
         configs['data']['sequence_length'], 
-        True,
         "Test Predictions" + model_title)
 
 
@@ -80,12 +82,13 @@ def main():
     # Get training and test data
     x, y = data.get_train_data(
         seq_len=configs['data']['sequence_length'],
-        normalise=False
+        normalise=True
     )
     x_test, y_test = data.get_test_data(
         seq_len=configs['data']['sequence_length'],
-        normalise=False
+        normalise=True
     )
+    # plt.plot_data(y, "train")
 
     #inverse transform to verify it works
     if plotData:
@@ -122,11 +125,11 @@ def main():
     # Plot predictions on each of the models
     if plotPredictions:
         if useFuncModel:
-            plot_predictions(model, data, ModelType.FUNCTIONAL, configs, x, normalised_data, raw_train_data, x_test, y_test)
+            plot_predictions(model, data, ModelType.FUNCTIONAL, configs, x, normalised_data, raw_train_data, x_test, y_test, y)
 
         # Run predictions on Sequential model
         if useSeqModel:
-            plot_predictions(model, data, ModelType.SEQUENTIAL, configs, x, normalised_data, raw_train_data, x_test, y_test)
+            plot_predictions(model, data, ModelType.SEQUENTIAL, configs, x, normalised_data, raw_train_data, x_test, y_test, y)
             
 
 

@@ -25,6 +25,8 @@ class DataFetcher():
         total_data = self.data_total.copy()
         last_ob = total_data[0][0]
         self.scaler, self.data_total_norm = self.transform_data(total_data)
+        # plt.plot_data(self.data_total_norm, "normalised total data")
+        # plt.plot_data(self.data_total, "total data")
         self.data_train_norm = self.data_total_norm[:self.i_split]
         self.data_test_norm  = self.data_total_norm[self.i_split:]
 
@@ -76,13 +78,13 @@ class DataFetcher():
         """difference the data then scale it to values between -1, 1"""
 
         # transform data to be stationary: values are now the differences between adjacent points
-        # diff_series = self.difference(raw_values, 1)
-        # diff_values = diff_series.values
-        # diff_values = diff_values.reshape(len(diff_values), 1)
-        
+        diff_series = self.difference(raw_values, 1)
+        diff_values = diff_series.values
+        diff_values = diff_values.reshape(len(diff_values), 1)
+
         # rescale values to be between -1, 1
         scaler = MinMaxScaler(feature_range=(-1, 1))
-        scaled_values = scaler.fit_transform(raw_values)
+        scaled_values = scaler.fit_transform(diff_values)
         scaled_values = scaled_values.reshape(len(scaled_values), 1)
         return scaler, scaled_values
 
@@ -98,8 +100,8 @@ class DataFetcher():
         return inv_scale
 
         #invert difference
-        # inv_diff = self.inverse_difference(last_ob, inv_scale)
-        # return inv_diff
+        inv_diff = self.inverse_difference(last_ob, inv_scale)
+        return inv_diff
 
     # inverse data transform on forecasts
     def inverse_transform_forecasts(self, true_data, forecasts, seq_len):
@@ -123,7 +125,8 @@ class DataFetcher():
             # invert differencing
             index = i * seq_len
             last_ob = true_data[index]
-            inv_diff = self.reshape_scaled_data(last_ob, inv_scale)
+            # inv_diff = self.reshape_scaled_data(last_ob, inv_scale)
+            inv_diff = self.inverse_difference(last_ob, inv_scale)
             inverted.append(inv_diff)
             
         inverted = inverted

@@ -31,23 +31,22 @@ def plot_results_multiple_over_total(predicted_data, true_data, prediction_len, 
         plt.legend()
     plt.show()
 
-def plot_results_multiple(predicted_data, true_data, prediction_len, normalised, title):
+def plot_results_multiple(predicted_data, true_data, prediction_len, title):
     """plot multiple predictions over true data"""
 
     fig = plt.figure(facecolor='white')
     ax = fig.add_subplot(111)
     index = 0
+    ax.plot(true_data, label='True Data', linewidth=2)
 
-    ax.plot(true_data, label='True Data')
     # Pad the list of predictions to shift it in the graph to it's correct start
     for i, d in enumerate(predicted_data):
-        data = d.copy()
-        if not normalised:
-            print("NORMALIZING")
-            data[:] += true_data[index]
-            index += prediction_len
+        prediction = d.copy()
+        start_diff = true_data[index] - prediction[0]
+        prediction[:] += start_diff
+        index += prediction_len
         padding = [None for p in range(i * prediction_len)]
-        plt.plot(padding + data)#, label='Prediction')
+        plt.plot(padding + prediction)#, label='Prediction')
         plt.legend()
         plt.title(title)
     plt.show()
