@@ -28,11 +28,12 @@ class MyModel():
 		print('[Model] Loading model from file %s' % filepath)
 		self.seq_model = load_model(filepath)
 
-	def build_functional_model(self, configs):
+	def build_functional_model(self, configs, kernel_size):
 		"""Build Functional keras model"""
 
 		timer = Timer()
 		timer.start()
+		print("Build Functional Model")
 
 		sequence_len = configs['data']['sequence_length'] - 1
 		lr = configs['func_model']['learning']
@@ -41,8 +42,7 @@ class MyModel():
 		inputs = Input(shape=(sequence_len,1))
 
 		filter_num = configs['func_model']['filters']
-		print("filter num: ", str(filter_num))
-		kernel_size = configs['func_model']['kernel']
+		# kernel_size = configs['func_model']['kernel']
 		dropout = configs['func_model']['dropout']
 		# conv1d layer: feature extraction
 		feat_extract = Conv1D(
@@ -68,10 +68,10 @@ class MyModel():
 
 		# self.aux_model = Model(inputs=inputs, outputs=feat_extract)
 
-		print("BUILT FUNCTIONAL MODEL: ")
-		print(self.func_model.summary())
+		# print(self.func_model.summary())
 
 		timer.stop()
+		return self.func_model
 
 
 	def build_sequential_model(self, configs):
@@ -146,6 +146,7 @@ class MyModel():
 		print('[Model] Training Completed. Model saved as %s' % save_fname)
 
 		timer.stop()
+		print("")
 
 	def eval(self, x, y, batch_size, modelType):
 		timer = Timer()
