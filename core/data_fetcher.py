@@ -85,7 +85,7 @@ class DataFetcher():
 
         # rescale values to be between -1, 1
         scaler = MinMaxScaler(feature_range=(-1, 1))
-        scaled_values = scaler.fit_transform(diff_values)
+        scaled_values = scaler.fit_transform(raw_values)
         scaled_values = scaled_values.reshape(len(scaled_values), 1)
         return scaler, scaled_values
 
@@ -101,7 +101,7 @@ class DataFetcher():
         return inv_scale
 
         #invert difference
-        inv_diff = self.inverse_difference(last_ob, inv_scale)
+        inv_diff = self.reshape_scaled_data(last_ob, inv_scale)
         return inv_diff
 
     # inverse data transform on forecasts
@@ -126,8 +126,8 @@ class DataFetcher():
             # invert differencing
             index = i * seq_len
             last_ob = true_data[index]
-            # inv_diff = self.reshape_scaled_data(last_ob, inv_scale)
-            inv_diff = self.inverse_difference(last_ob, inv_scale)
+            inv_diff = self.reshape_scaled_data(last_ob, inv_scale)
+            # inv_diff = self.inverse_difference(last_ob, inv_scale)
             inverted.append(inv_diff)
             
         inverted = inverted

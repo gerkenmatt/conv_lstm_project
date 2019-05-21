@@ -1,15 +1,15 @@
 {
 	"data": {
-		"filename": "sp500_dropout.csv",
+		"filename": "AMD_dropout.csv",
 		"columns": [
 			"Close"
 		],
-		"sequence_length": 10,
+		"sequence_length": 15,
 		"train_test_split": 0.5,
 		"normalise": true
 	},
 	"training": {
-		"epochs": 30,
+		"epochs": 40,
 		"batch_size": 32
 	},
 	"model": {
@@ -20,26 +20,26 @@
 		"layers": [
 			{				
 				"type": "conv1d",
-				"kernel_size":15,
+				"kernel_size":2,
 				"filters":64,
-				"input_timesteps": 9,
+				"input_timesteps": 14,
 				"input_dim": 1,
 				"padding":"same"
 			},
 			{
-				"type": "dropout",
-				"rate": 0.4
+				"type": "lstm",
+				"neurons": 100,
+				"return_seq": true
 			},
 			{
 				"type": "lstm",
 				"neurons": 100,
-				"input_timesteps": 9,
-				"input_dim": 64,
 				"return_seq": true
 			},
 			{
-				"type": "dropout",
-				"rate": 0.2
+				"type": "lstm",
+				"neurons": 100,
+				"return_seq": true
 			},
 			{
 				"type": "lstm",
@@ -50,10 +50,6 @@
 				"type": "lstm",
 				"neurons": 100,
 				"return_seq": false
-			},
-			{
-				"type": "dropout",
-				"rate": 0.2
 			},
 			{
 				"type": "dense",
