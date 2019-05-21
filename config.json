@@ -9,7 +9,7 @@
 		"normalise": true
 	},
 	"training": {
-		"epochs": 20,
+		"epochs": 10,
 		"batch_size": 32
 	},
 	"model": {
@@ -37,9 +37,9 @@
 		]
 	},
 	"func_model": {
-		"learning":0.005,
+		"learning":0.01,
 		"filters": 64,
-		"kernel" : 5, 
+		"kernel" : 4, 
 		"dropout": 0.3
 	}
 }

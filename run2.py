@@ -9,7 +9,7 @@ import numpy as np
 from scipy.ndimage.interpolation import shift
 import core.plot_utils as plt
 
-useSeqModel = True
+useSeqModel = False
 useFuncModel = True
 visualizeConvolution = False
 plotPredictions = True
@@ -27,8 +27,7 @@ def plot_predictions(model, data, modelType, configs, x, normalised_data, raw_tr
         configs['data']['sequence_length'], 
         configs['data']['sequence_length'], 
         modelType)
-    raw_func_preds = data.inverse_transform_forecasts(
-        normalised_data, 
+    raw_func_preds = data.inverse_transform_forecasts(normalised_data, 
         predictions,
         configs['data']['sequence_length'])
     plt.plot_results_multiple(
@@ -82,11 +81,17 @@ def main():
     # Get training and test data
     x, y = data.get_train_data(
         seq_len=configs['data']['sequence_length'],
-        normalise=True
+        normalise=True, 
+        shuffle=False
     )
     x_test, y_test = data.get_test_data(
         seq_len=configs['data']['sequence_length'],
         normalise=True
+    )
+    x_shuffled, y_shuffled = data.get_train_data(
+        seq_len=configs['data']['sequence_length'],
+        normalise=True, 
+        shuffle=True
     )
     # plt.plot_data(y, "train")
 
@@ -105,8 +110,8 @@ def main():
     # Train the model(s)
     if useFuncModel:
         model.train(
-            x,
-            y,
+            x_shuffled,
+            y_shuffled,
             epochs = configs['training']['epochs'],
             batch_size = configs['training']['batch_size'],
             save_dir = configs['model']['save_dir'],
@@ -114,8 +119,8 @@ def main():
         )
     if useSeqModel: 
         model.train(
-            x,
-            y,
+            x_shuffled,
+            y_shuffled,
             epochs = configs['training']['epochs'],
             batch_size = configs['training']['batch_size'],
             save_dir = configs['model']['save_dir'],

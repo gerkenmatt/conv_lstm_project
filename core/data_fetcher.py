@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from pandas import Series
 from . import plot_utils as plt
+import random
 
 
 class DataFetcher():
@@ -149,7 +150,13 @@ class DataFetcher():
         y = data_windows[:, -1, [0]]
         return x,y
 
-    def get_train_data(self, seq_len, normalise):
+    def shuffle_train_data(self, x, y): 
+        c = list(zip(x, y))
+        random.shuffle(c)
+
+        return zip(*c)
+
+    def get_train_data(self, seq_len, normalise, shuffle):
         '''
         Create x, y train data windows
         Warning: batch method, not generative, make sure you have enough memory to
@@ -161,6 +168,10 @@ class DataFetcher():
             x, y = self._next_window(i, seq_len, normalise)
             data_x.append(x)
             data_y.append(y)
+
+        if shuffle: 
+            data_x, data_y = self.shuffle_train_data(data_x, data_y)
+
         return np.array(data_x), np.array(data_y)
 
     def _next_window(self, i, seq_len, normalise):
