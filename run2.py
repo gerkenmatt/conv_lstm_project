@@ -9,8 +9,8 @@ import numpy as np
 from scipy.ndimage.interpolation import shift
 import core.plot_utils as plt
 
-useSeqModel = False
-useFuncModel = True
+useSeqModel = True
+useFuncModel = False
 visualizeConvolution = False
 plotPredictions = True
 plotData = False
@@ -103,7 +103,7 @@ def main():
     # Build the model(s)
     model = MyModel()
     if useFuncModel:
-        model.build_functional_model(configs)
+        model.build_functional_model(configs, configs['func_model']['kernel'])
     if useSeqModel: 
         model.build_sequential_model(configs)
     

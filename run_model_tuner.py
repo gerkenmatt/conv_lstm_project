@@ -60,12 +60,14 @@ def main():
     epochs = [5, 10, 5]#[20, 30, 40, 50, 60]
     kernel_sizes = [1, 2, 4, 6, 8, 10, 15]
     error_scores = list()
-    repeats = 2
+    repeats = 3
 
     for kernel in kernel_sizes:
+        print("KERNEL SIZE: ", str(kernel))
         errs = list()
         for i in range(repeats):
 
+            print("Run #", str(i))
             #rebuild new model 
             model.build_functional_model(configs, kernel)
             
